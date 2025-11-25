@@ -35,9 +35,9 @@ export default function Watchlist({ watchlist, setWatchlist }) {
             const mc   = getRatingLabel(movie, "Metacritic");
             
             return (
-              <li key={movie.imdbID} className="group relative m-[1%] my-[2%] md:my-[1.5%] xl:my-[1%] bg-white rounded-lg shadow-md">
+              <li key={movie.imdbID} className="relative m-[1%] my-[2%] md:my-[1.5%] xl:my-[1%] bg-white rounded-lg shadow-md">
                 {/* Top bar displays movie\show title, year, type, age rating, and genres */}
-                <div className="flex items-center px-[1%] py-[.5%]">
+                <div className="group relative flex items-center px-[1%] py-[.5%]">
                   {/* Title */}
                   <h3 className="m-[.5%] max-w-[45%] text-sm sm:text-base lg:text-lg font-medium">{movie.Title}</h3>
                   {/* Year */}
@@ -59,42 +59,43 @@ export default function Watchlist({ watchlist, setWatchlist }) {
                   <button onClick={() => handleDelete(movie.imdbID)} className="ml-auto text-xs sm:text-sm lg:text-base">
                     🗑️
                   </button>
-                </div>
 
-                {/* Hover panel displays movie poster, plot, director, actors, and critic ratings */}
-                <div className="relative hidden group-hover:flex items-start p-[1.5%] w-full bg-gray-100 after:content-[''] after:absolute after:inset-x-0 after:top-full after:h-3 sm:after:h-4 lg:after:h-5">
-                  {/* Movie Poster */}
-                  <img
-                    className="w-[17%] rounded"
-                    src={movie.Poster || "https://placehold.co/300x412?text=No+Image"}
-                    alt={movie.Title}
-                    onError={(e) => {
-                      e.target.onerror = null;
-                      e.target.src = "https://placehold.co/300x412?text=No+Image";
-                    }}
-                  />
+                  {/* On hover panel displays movie poster, plot, director, actors, and critic ratings */}
+                  <div className="pointer-events-none absolute left-0 right-0 top-full z-10 hidden group-hover:flex items-start p-[1.5%] bg-gray-100 shadow-lg rounded-lg">
+                    {/* Movie Poster */}
+                    <img
+                      className="w-[17%] rounded"
+                      src={movie.Poster || "https://placehold.co/300x412?text=No+Image"}
+                      alt={movie.Title}
+                      onError={(e) => {
+                        e.target.onerror = null;
+                        e.target.src = "https://placehold.co/300x412?text=No+Image";
+                      }}
+                    />
 
-                  <div className="mx-[1.5%]">
-                    {/* Movie Plot */}
-                      <p className="text-xs sm:text-sm lg:text-base"><strong>Plot</strong></p>
-                      <p className="text-xs sm:text-sm lg:text-base text-gray-700">{movie.Plot}</p>
-                    
-                    <div className="mt-[1%] text-xs md:text-sm xl:text-base text-gray-700">
-                      {/* Movie Director */}
-                      <p><strong>Director:</strong> {movie.Director}</p>
-                      {/* Actors/Actresses */}
-                      <p><strong>Actors:</strong> {movie.Actors}</p>
-                    </div>
+                    {/* Details to the right */}
+                    <div className="mx-[1.5%]">
+                      {/* Movie Plot */}
+                        <p className="text-xs sm:text-sm lg:text-base"><strong>Plot</strong></p>
+                        <p className="text-xs sm:text-sm lg:text-base text-gray-700">{movie.Plot}</p>
+                      
+                      <div className="mt-[1%] text-xs md:text-sm xl:text-base text-gray-700">
+                        {/* Movie Director */}
+                        <p><strong>Director:</strong> {movie.Director}</p>
+                        {/* Actors/Actresses */}
+                        <p><strong>Actors:</strong> {movie.Actors}</p>
+                      </div>
 
-                    {/* Ratings */}
-                    <p className="mt-[2%] text-xs md:text-sm xl:text-base"><strong>Ratings</strong></p>
-                    <div className="flex text-xs md:text-sm xl:text-base text-gray-700">                    
-                      {/* IMDB Score */}
-                      <p><strong>IMDb:</strong> {imdb}</p>
-                      {/* Rotten Tomatoes Score */}
-                      <p className="ml-[3%]"><strong>Rotten Tomatoes:</strong> {rt}</p>
-                      {/* Metacritic Score */}
-                      <p className="ml-[3%]"><strong>Metacritic:</strong> {mc}</p>
+                      {/* Ratings */}
+                      <p className="mt-[2%] text-xs md:text-sm xl:text-base"><strong>Ratings</strong></p>
+                      <div className="flex text-xs md:text-sm xl:text-base text-gray-700">                    
+                        {/* IMDB Score */}
+                        <p><strong>IMDb:</strong> {imdb}</p>
+                        {/* Rotten Tomatoes Score */}
+                        <p className="ml-[3%]"><strong>Rotten Tomatoes:</strong> {rt}</p>
+                        {/* Metacritic Score */}
+                        <p className="ml-[3%]"><strong>Metacritic:</strong> {mc}</p>
+                      </div>
                     </div>
                   </div>
                 </div>
