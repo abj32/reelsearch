@@ -201,8 +201,6 @@ Once `npm run dev` is running:
 - 📝 **Issue-driven refinements:**
    - Smaller UX and styling improvements tracked under the [Issues tab](https://github.com/abj32/movie-watchlist/issues).
 
-<br>
-
 **Stay tuned for updates!**
 
 <br>
