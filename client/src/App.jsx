@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { BrowserRouter, Routes, Route, NavLink, useNavigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, NavLink, useNavigate, Navigate } from "react-router-dom";
 import Home from './pages/Home';
 import SearchBar from "./components/SearchBar";
 
