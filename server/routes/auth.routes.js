@@ -1,15 +1,17 @@
 import { Router } from 'express';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import { prisma } from '../index.js';
+import { prisma } from '../db.js';
 import { requireAuth } from '../middleware/requireAuth.js';
 
 const router = Router();
 
+const isProd = process.env.NODE_ENV === 'production';
+
 const COOKIE_OPTS = {
   httpOnly: true,
-  sameSite: 'lax',
-  secure: process.env.NODE_ENV === 'production',
+  sameSite: isProd ? 'none' : 'lax',
+  secure: isProd,
   path: '/'
 };
 
@@ -71,7 +73,7 @@ router.get('/profile', requireAuth, async (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
     res.json(user);
-  } catch {
+  } catch (e) {
     console.error(e);
     res.status(500).json({ message: 'Server error' });
   }

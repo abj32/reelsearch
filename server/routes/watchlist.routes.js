@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { prisma } from '../index.js';
+import { prisma } from '../db.js';
 import { requireAuth } from '../middleware/requireAuth.js';
 import { getMovieDetails } from '../services/omdb.service.js';
 import { normalizeRatings } from '../utils/ratings.util.js';
