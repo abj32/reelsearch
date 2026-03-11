@@ -1,20 +1,92 @@
-# Movie Watchlist
+# 🎥 ReelSearch
 
-Movie Watchlist is a full-stack app for discovering movies/shows/games through the OMDb catalog and saving items to a personal watchlist backed by PostgreSQL. The watchlist stores expanded metadata (plot, director, actors, critic ratings) so saved items are more detailed than search results.
+<p align="center">
+  <img src="https://img.shields.io/badge/Frontend-React-blue">
+  <img src="https://img.shields.io/badge/API-Express-black">
+  <img src="https://img.shields.io/badge/Database-PostgreSQL-blue">
+  <img src="https://img.shields.io/badge/License-MIT-green">
+</p>
+
+🎥 ReelSearch is a full-stack web application for discovering movies, TV series, and games through the OMDb catalog and saving them to a personal watchlist backed by PostgreSQL. Users can search the catalog, explore detailed movie metadata, and maintain a persistent watchlist of saved titles.
+
+<br>
+
+## Live Demo
+
+Frontend:  
+[reelsearch-ten.vercel.app](https://reelsearch-ten.vercel.app)
+
+Backend health check:  
+[reelsearch-api.onrender.com/health](https://reelsearch-api.onrender.com/health)
+
+⚠️ Note: The app may take ~20–30 seconds to respond on the first request after inactivity because the server runs on Render's free tier.
+
+<br>
+
+## Screenshots
+
+### Search Results
+
+<p align="center">
+  <img src="docs/search-results.png" width="900">
+</p>
+
+<p align="center">
+Search results display key movie metadata and allow users to add titles directly to their watchlist.
+</p>
+
+<br>
+
+### Watchlist (Expanded Details)
+
+<p align="center">
+  <img src="docs/watchlist-details.png" width="900">
+</p>
+
+<p align="center">
+  Hovering over a watchlist item reveals stored metadata including plot, cast, and critic ratings.
+</p>
 
 <br>
 
 ## Tech Stack
-- **Frontend:** Vite + React + React Router + Tailwind CSS  
-- **Backend:** Node.js + Express + Prisma + PostgreSQL (tested with Neon)
-- **Auth:** bcrypt, JWT (stored in an httpOnly cookie)
-- **External API:** [OMDb API](https://www.omdbapi.com/)
+
+- **Frontend**
+   - React
+   - Vite
+   - React Router
+   - Tailwind CSS
+- **Backend**
+   - Node.js
+   - Express
+   - Prisma
+- **Database**
+   - PostgreSQL (Neon)
+- **Authentication**
+   - bcrypt, JWT (stored in an httpOnly cookie)
+- **External API**
+   - [OMDb API](https://www.omdbapi.com/)
+- **Deployment**
+   - Vercel (frontend)
+   - Render (backend)
+
+<br>
+
+## System Architecture
+
+🎥 ReelSearch follows a typical full-stack architecture:
+- The **React + Vite frontend** communicates with an **Express REST API**
+- The API handles **authentication, search requests, and watchlist management**
+- Search requests are proxied to the **OMDb API**, and the server fetches full metadata for each result
+- **Prisma ORM** manages database access for user accounts and watchlists
+- Watchlist data is stored in **PostgreSQL (Neon)**
+- Authentication is implemented with **JWT tokens stored in secure httpOnly cookies**
 
 <br>
 
 ## Project Structure
 ```text
-movie-watchlist/
+reelsearch/
 ├─ client/                  # React + Vite frontend
 │  ├─ src/
 │  │  ├─ App.jsx
@@ -54,26 +126,38 @@ movie-watchlist/
 
 ## Features
 
-- 🔍 **Movie / Show / Game Search**
-  - Search the OMDb catalog by title
-  - Results show key info (poster, title, year, type, age rating) for quick browsing
+### 🔍 Movie / Show / Game Search
 
-- 👤 **User Accounts & Auth**
-  - Register and log in with email + password
-  - Passwords are hashed with `bcrypt`
-  - Session handled via an `httpOnly` cookie containing a signed JWT
-  - View email and profile creation date via **Profile Icon** -> **Profile**
+Search the OMDb catalog by title and return enriched metadata for each result.
 
-- 📺 **Persistent Watchlist**
-  - Add movies/shows/games to your watchlist from search results
-  - Watchlist is stored per-user in PostgreSQL via Prisma
-  - Remove items from your watchlist at any time
-  - Watchlist displays extra details on hover (plot, director, actors, critic ratings)
+- Results display key information such as poster, title, year, type, and age rating for quick browsing
+- The backend fetches full metadata for each unique result before returning it to the client
+- Users can add titles directly to their watchlist from the search results
 
-- ⭐ **Ratings & Normalization**
-  - OMDb ratings (IMDb, Rotten Tomatoes, Metacritic) are displayed in usual format (IMDb: 8.7/10, Rotten Tomatoes: 87%, Metacritic: 87/100)
-  - Normalized scores are computed and stored under the hood as well as an  combined average `sortScore`
-  - These scores are **not yet displayed in the UI**, but will power future sorting/ranking features
+### 👤 User Accounts & Authentication
+Create an account and securely manage a personal watchlist.
+- Users can register and log in with email and password
+- Passwords are securely hashed using `bcrypt`
+- Authentication is handled through a signed JWT stored in a secure `httpOnly` cookie
+- Logged-in users can view their email and account creation date via **Profile Icon → Profile**
+
+### 📺 Persistent Watchlist
+
+Save titles to a personal watchlist backed by PostgreSQL.
+
+- Movies, series, and games can be added directly from search results
+- Watchlist items are stored per user using **Prisma ORM** and **PostgreSQL**
+- Items can be removed from the watchlist at any time
+- Hovering over an item reveals expanded metadata including plot, director, cast, and critic ratings
+
+### ⭐ Ratings & Normalization
+
+Normalize critic ratings to enable future ranking and sorting features.
+
+- OMDb ratings (IMDb, Rotten Tomatoes, Metacritic) are displayed in their familiar formats (e.g., IMDb: 8.7/10, Rotten Tomatoes: 87%)
+- Ratings are normalized internally into comparable scores
+- A combined average `sortScore` is computed and stored
+- These normalized scores are not yet displayed in the UI but will power future ranking and filtering features
 
 <br>
 
@@ -88,8 +172,8 @@ movie-watchlist/
 ### Installation and Setup
 1. **Fork or Clone the Repository**
    ```bash
-   git clone https://github.com/abj32/movie-watchlist.git
-   cd movie-watchlist
+   git clone https://github.com/abj32/reelsearch.git
+   cd reelsearch
    ```
 
 2. **Install Dependencies**\
@@ -135,7 +219,7 @@ Once `npm run dev` is running:
 1. **Register/Log In**
 - **Note**: You **do not need to be logged in** to search for and view movies/shows/games, but you **do need to be logged in** to add items to your watchlist
 - Click the profile icon in the header and go to **Register** or **Login**
-- Create an account with email and password or login with 
+- Create an account with email and password or login with an existing account
 - After successful registration or login, the server sets an `httpOnly` session cookie (`sid`) with a signed JWT (expires in 1 hour)
 - The client automatically fetches your profile on load (`GET /api/auth/profile`) to check for session cookie and JWT
 - You can log out via **Profile Icon** -> **Log out**
@@ -199,7 +283,7 @@ Once `npm run dev` is running:
 - 🎯 **Filtering**
    - Filter watchlist by type (movie / series / game)
 - 📝 **Issue-driven refinements:**
-   - Smaller UX and styling improvements tracked under the [Issues tab](https://github.com/abj32/movie-watchlist/issues).
+   - Smaller UX and styling improvements tracked under the [Issues tab](https://github.com/abj32/reelsearch/issues).
 
 **Stay tuned for updates!**
 
