@@ -1,5 +1,5 @@
 {
-  "name": "movie-watchlist",
+  "name": "reelsearch",
   "version": "1.0.0",
   "type": "module",
   "main": "index.js",
@@ -8,7 +8,7 @@
     "start-server": "nodemon server/index.js",
     "start-client": "npm --prefix client run dev",
     "client:install": "npm --prefix client install",
-    "predev": "npm run client:install"
+    "postinstall": "prisma generate"
   },
   "keywords": [],
   "author": "",
