@@ -4,12 +4,18 @@ import { combinedSearch } from '../services/omdb.service.js';
 const router = Router();
 
 router.get('/', async (req, res) => {
+  const { q } = req.query;
+
+  if (typeof q !== "string" || q.trim().length === 0) {
+    return res.status(400).json({ error: "Query parameter 'q' is required" });
+  }
+
   try {
-    const results = await combinedSearch(req.query.q.toString());
-    res.json(results);
-  } catch (e) {
-    console.error(e);
-    res.status(500).json({ message: 'Search failed' });
+    const movies = await combinedSearch(q.trim());
+    return res.json(movies);
+  } catch (err) {
+    console.error("Search error:", err);
+    return res.status(500).json({ error: "Failed to fetch movies" });
   }
 });
 
