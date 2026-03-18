@@ -177,12 +177,17 @@ Normalize critic ratings to enable future ranking and sorting features.
    ```
 
 2. **Install Dependencies**\
-   Run a single install from the project root:
+   Install backend dependencies:
    ```bash
    npm install
    ```
 
-   The root `package.json` uses a `predev` script to install client dependencies the first time you run the dev server.
+   Then install frontend dependencies:
+   ```bash
+   cd client
+   npm install
+   cd ..
+   ```
 
 3. **Set Up Environment Variables**\
    Create a `.env` file in the project root and define:
