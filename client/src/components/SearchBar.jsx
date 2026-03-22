@@ -10,13 +10,18 @@ export default function SearchBar({ setResults }) {
   async function handleSubmit(e) {
     e.preventDefault(); // prevents page reload
     
-    if (query.trim() === "") return;  // Do nothing on blank search
+    const trimmed = query.trim();
+
+    if (trimmed.length === 0) { // Do nothing on blank search
+      setSearchMessage("Please enter a search term.");
+      return;
+    }
 
     setSearchMessage("");
     setResults([]); // Clear results
 
     try {
-      const movies = await searchMovies(query);
+      const movies = await searchMovies(trimmed);
       setResults(movies);
 
       if (movies.length === 0) {
