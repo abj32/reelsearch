@@ -4,7 +4,7 @@ import { searchMovies } from "../services/search";
 
 export default function SearchBar({ setResults }) {
   const [query, setQuery] = useState("");
-  const [errorMessage, setErrorMessage] = useState("");
+  const [searchMessage, setSearchMessage] = useState("");
   const navigate = useNavigate();
 
   async function handleSubmit(e) {
@@ -12,22 +12,27 @@ export default function SearchBar({ setResults }) {
     
     if (query.trim() === "") return;  // Do nothing on blank search
 
-    setErrorMessage("");
+    setSearchMessage("");
     setResults([]); // Clear results
 
     try {
       const movies = await searchMovies(query);
       setResults(movies);
+
+      if (movies.length === 0) {
+        setSearchMessage("No movies found.");
+      }
+
       navigate("/");
     } catch (err) {
       console.error("Search failed", err);
 
       if (err.body?.code === "TOO_MANY_RESULTS") {
-        setErrorMessage("Please refine your search.");
+        setSearchMessage("Please refine your search.");
         return;
       }
 
-      setErrorMessage("Search failed. Please try again.");
+      setSearchMessage("Search failed. Please try again.");
     }
   }
 
@@ -42,9 +47,9 @@ export default function SearchBar({ setResults }) {
           className="p-3 w-full text-base sm:text-lg md:text-xl indent-1 sm:indent-2 md:indent-3 lg:indent-4 border border-gray-300 rounded-full shadow-md focus:outline-none focus:ring-2 focus:ring-indigo-400"
         />
 
-        {errorMessage && (
+        {searchMessage && (
           <div className="absolute left-0 mt-2 w-full text-sm sm:text-base md:text-lg bg-red-100 border border-red-400 text-red-700 px-3 py-2 rounded-md shadow">
-            {errorMessage}
+            {searchMessage}
           </div>
         )}
       </form>
