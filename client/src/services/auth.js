@@ -23,5 +23,6 @@ export function logout() {
 export function getProfile() {
   return request('/auth/profile', {
     method: 'GET',
+    useGlobalLoading: true,
   });
 }

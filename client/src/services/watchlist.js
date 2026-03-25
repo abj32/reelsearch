@@ -43,7 +43,10 @@ function normalizeMovie(movie) {
 }
 
 export async function fetchWatchlist() {
-  const movies = await request("/watchlist", { method: "GET" });
+  const movies = await request("/watchlist", {
+    method: "GET",
+    useGlobalLoading: true,
+  });
   return movies.map(normalizeMovie);
 }
 
