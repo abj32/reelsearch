@@ -5,6 +5,7 @@ import SearchBar from "./components/SearchBar";
 
 import { getProfile, logout } from "./services/auth";
 import { fetchWatchlist } from './services/watchlist';
+import { subscribeToApiLoading } from './services/api';
 import Register from "./pages/Register";
 import Login from "./pages/Login";
 import Profile from "./pages/Profile";
@@ -18,6 +19,7 @@ function AppShell() {
   const [checkingAuth, setCheckingAuth] = useState(true); // while we call /auth/profile on load
   const [menuOpen, setMenuOpen] = useState(false);        // dropdown state
   const [watchlist, setWatchlist] = useState([]);   // stores watchlist
+  const [isApiLoading, setIsApiLoading] = useState(false);  // global API loading state
 
   const navigate = useNavigate();
 
@@ -53,6 +55,19 @@ function AppShell() {
       }
     })();
   }, [user]);
+
+  // Subscribe/unsubscribe to loading updates
+  useEffect(() => {
+    return subscribeToApiLoading(setIsApiLoading);
+  }, []);
+
+  useEffect(() => {
+    document.documentElement.style.cursor = isApiLoading ? "wait" : ""; // toggle cursor when loading
+
+    return () => {
+      document.documentElement.style.cursor = ''; // reset on unmount
+    };
+  }, [isApiLoading]);
 
   // Clear search results (for when user clicks home button)
   function handleHome() {
