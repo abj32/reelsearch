@@ -109,7 +109,9 @@ function AppShell() {
         {/* Icon button with dropdown */}
         <div className="relative ml-auto">
           {/* Profile icon */}
-          <button type="button" onClick={() => setMenuOpen((prev) => !prev)} className="flex items-center justify-center mr-1 w-9 sm:w-10 md:w-11 lg:w-13 xl:w-15 h-9 sm:h-10 md:h-11 lg:h-13 xl:h-15 rounded-full bg-white/20 hover:bg-white/30 border border-white/30">
+          <button type="button" disabled={isApiLoading} onClick={() => setMenuOpen((prev) => !prev)} className={`flex items-center justify-center mr-1 w-9 sm:w-10 md:w-11 lg:w-13 xl:w-15 h-9 sm:h-10 md:h-11 lg:h-13 xl:h-15 rounded-full bg-white/20 hover:bg-white/30 border border-white/30 ${
+            isApiLoading ? "opacity-50 cursor-not-allowed" : "hover:bg-white/30"
+          }`}>
             <span className="text-base sm:text-lg md:text-xl lg:text-2xl xl:text-3xl">👤</span>
           </button>
 
