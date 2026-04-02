@@ -6,6 +6,14 @@ import { normalizeRatings } from '../utils/ratings.util.js';
 
 const router = Router();
 
+function serializeWatchlistItem(item) {
+  return {
+    ...item,
+    boxOfficeValue:
+      item.boxOfficeValue != null ? item.boxOfficeValue.toString() : null,
+  };
+}
+
 // GET user watchlist
 router.get('/', requireAuth, async (req, res) => {
   try {
@@ -14,13 +22,52 @@ router.get('/', requireAuth, async (req, res) => {
       orderBy: { createdAt: 'asc' },
     });
 
-    res.json(items);
+    res.json(items.map(serializeWatchlistItem));
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Failed to load watchlist' });
   }
 });
 
+function naToNull(value) {
+  if (value == null) return null;
+  if (typeof value !== 'string') return value;
+  const trimmed = value.trim();
+  return trimmed === '' || trimmed === 'N/A' ? null : trimmed;
+}
+
+function parseCsvArray(value) {
+  const normalized = naToNull(value);
+  if (!normalized) return [];
+  return normalized
+    .split(',')
+    .map((part) => part.trim())
+    .filter(Boolean);
+}
+
+function parseReleaseYear(value) {
+  const normalized = naToNull(value);
+  if (!normalized) return null;
+
+  const match = normalized.match(/\d{4}/);
+  return match ? Number(match[0]) : null;
+}
+
+function parseRuntimeMins(value) {
+  const normalized = naToNull(value);
+  if (!normalized) return null;
+
+  const match = normalized.match(/^(\d+)\s+min$/i);
+  return match ? Number(match[1]) : null;
+}
+
+function parseBoxOfficeValue(value) {
+  const normalized = naToNull(value);
+  if (!normalized) return null;
+
+  const digits = normalized.replace(/[^0-9]/g, '');
+  return digits ? BigInt(digits) : null;
+}
 
 // POST item to watchlist
 router.post('/', requireAuth, async (req, res) => {
@@ -45,6 +92,30 @@ router.post('/', requireAuth, async (req, res) => {
     // Fetch full movie details from OMDb
     const movie = await getMovieDetails(imdbId);
 
+    // Build normalized values
+    const poster = naToNull(movie.Poster);
+    const year = naToNull(movie.Year);
+    const releaseYear = parseReleaseYear(movie.Year);
+
+    const type = naToNull(movie.Type);
+    const rated = naToNull(movie.Rated);
+
+    const genre = naToNull(movie.Genre);
+    const genres = parseCsvArray(movie.Genre);
+
+    const plot = naToNull(movie.Plot);
+    const director = naToNull(movie.Director);
+    const actors = naToNull(movie.Actors);
+
+    const runtime = naToNull(movie.Runtime);
+    const runtimeMins = parseRuntimeMins(movie.Runtime);
+
+    const language = naToNull(movie.Language);
+    const languages = parseCsvArray(movie.Language);
+
+    const boxOffice = naToNull(movie.BoxOffice);
+    const boxOfficeValue = parseBoxOfficeValue(movie.BoxOffice);
+
     // Normalize rating numbers & compute rounded sortScore
     const { imdbRaw, rtRaw, mcRaw, imdbScore, rtScore, mcScore, sortScore } =
       normalizeRatings(movie.Ratings);
@@ -54,21 +125,33 @@ router.post('/', requireAuth, async (req, res) => {
       userId: req.userId,
       imdbId,
       title: movie.Title,
-      poster: movie.Poster !== 'N/A' ? movie.Poster : null,
-      year: movie.Year,
-      type: movie.Type,
-      rated: movie.Rated !== 'N/A' ? movie.Rated : null,
-      genre: movie.Genre,
-      plot: movie.Plot,
-      director: movie.Director,
-      actors: movie.Actors,
+      poster,
 
-      // Raw string rating
+      year,
+      releaseYear,
+
+      type,
+      rated,
+
+      genre,
+      genres,
+
+      plot,
+      director,
+      actors,
+
+      runtime,
+      runtimeMins,
+
+      language,
+      languages,
+
+      boxOffice,
+      boxOfficeValue,
+
       imdbRaw,
       rtRaw,
       mcRaw,
-
-      // normalized numeric ratings
       imdbScore,
       rtScore,
       mcScore,
@@ -78,7 +161,7 @@ router.post('/', requireAuth, async (req, res) => {
     // Add to watchlist
     const item = await prisma.watchlistItem.create({ data });
 
-    res.status(201).json(item);
+    res.status(201).json(serializeWatchlistItem(item));
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Failed to add to watchlist' });
