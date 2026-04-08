@@ -17,7 +17,7 @@ function serializeWatchlistItem(item) {
 // GET user watchlist
 router.get('/', requireAuth, async (req, res) => {
   try {
-    const { type, genre, sortBy, order } = req.query;
+    const { type, genre, sortBy, order, yearGte, yearLte, runtimeLte, } = req.query;
 
     const where = {
       userId: req.userId,
@@ -40,6 +40,80 @@ router.get('/', requireAuth, async (req, res) => {
       const normalizedGenre = genre.trim().toLowerCase();
       where.genres = {
         has: normalizedGenre,
+      };
+    }
+
+    // Optional year > or < filter
+    const currentYear = new Date().getFullYear();
+    const parsedYearGte =
+      typeof yearGte === 'string' && yearGte.trim() !== ''
+        ? Number(yearGte)
+        : null;
+
+    if (parsedYearGte !== null) {
+      if (!Number.isInteger(parsedYearGte)) {
+        return res.status(400).json({ message: 'yearGte must be an integer' });
+      }
+
+      if (parsedYearGte < 1888 || parsedYearGte > currentYear + 10) {
+        return res.status(400).json({ message: 'yearGte is invalid' });
+      }
+    }
+
+    const parsedYearLte =
+      typeof yearLte === 'string' && yearLte.trim() !== ''
+        ? Number(yearLte)
+        : null;
+
+    if (parsedYearLte !== null) {
+      if (!Number.isInteger(parsedYearLte)) {
+        return res.status(400).json({ message: 'yearLte must be an integer' });
+      }
+
+      if (parsedYearLte < 1888 || parsedYearLte > currentYear + 10) {   // Date of first film
+        return res.status(400).json({ message: 'yearLte is invalid' });
+      }
+    }
+
+    if (
+      parsedYearGte !== null &&
+      parsedYearLte !== null &&
+      parsedYearGte > parsedYearLte
+    ) {
+      return res.status(400).json({ message: 'yearGte cannot be greater than yearLte' });
+    }
+
+    // Optional runtime < filter
+    const parsedRuntimeLte =
+      typeof runtimeLte === 'string' && runtimeLte.trim() !== ''
+        ? Number(runtimeLte)
+        : null;
+
+    if (parsedRuntimeLte !== null) {
+      if (!Number.isInteger(parsedRuntimeLte)) {
+        return res.status(400).json({ message: 'runtimeLte must be an integer' });
+      }
+
+      if (parsedRuntimeLte <= 0) {
+        return res.status(400).json({ message: 'runtimeLte must be greater than 0' });
+      }
+    }
+
+    if (parsedYearGte !== null || parsedYearLte !== null) {
+      where.releaseYear = {};
+
+      if (parsedYearGte !== null) {
+        where.releaseYear.gte = parsedYearGte;
+      }
+
+      if (parsedYearLte !== null) {
+        where.releaseYear.lte = parsedYearLte;
+      }
+    }
+
+    if (parsedRuntimeLte !== null) {
+      where.runtimeMins = {
+        lte: parsedRuntimeLte,
       };
     }
 
