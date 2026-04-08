@@ -22,37 +22,50 @@ model User {
 }
 
 model WatchlistItem {
-  userId    Int
-  imdbId    String
-  title     String
-  poster    String?
-  year      String
-  type      String
-  rated     String?
-  genre     String
-  plot      String
-  director  String
-  actors    String
+  userId          Int
+  imdbId          String
+  title           String
+  poster          String?
 
-  // Raw strings from OMDb for display/debug
-  imdbRaw   String?   // e.g. "8.7/10"
-  rtRaw     String?   // e.g. "95%"
-  mcRaw     String?   // e.g. "82/100"
+  year            String    // raw OMDb year text, e.g. "2016", "2019–2022"
+  releaseYear     Int?      // parsed first year for sorting/filtering
 
-  // Normlized numeric columns for sorting/filtering
-  imdbScore   Float?
-  rtScore     Int?
-  mcScore     Int?
+  type            String
+  rated           String?
 
-  // Average of the 3 available scores
-  sortScore   Float?
+  genre           String?   // raw OMDb genre text
+  genres          String[]  // parsed array
 
-  createdAt   DateTime  @default(now())
+  plot            String?
+  director        String?
+  actors          String?
 
-  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  runtime         String?   // e.g. "148 min"
+  runtimeMins     Int?
+
+  language        String?   // raw OMDb language text
+  languages       String[]  // parsed array
+
+  boxOffice       String?   // e.g. "$858,373,000"
+  boxOfficeValue  BigInt?   // parsed integer dollars
+
+  imdbRaw         String?   // e.g. "8.7/10"
+  rtRaw           String?   // e.g. "95%"
+  mcRaw           String?   // e.g. "82/100"
+
+  imdbScore       Float?
+  rtScore         Int?      
+  mcScore         Int?
+  sortScore       Float?    // Average of the 3 available scores
+
+  createdAt       DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@id([userId, imdbId])
   @@index([userId, createdAt])
+  @@index([userId, releaseYear])
+  @@index([userId, type])
   @@index([userId, imdbScore])
   @@index([userId, rtScore])
   @@index([userId, mcScore])
