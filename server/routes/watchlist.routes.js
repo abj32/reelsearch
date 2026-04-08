@@ -17,12 +17,72 @@ function serializeWatchlistItem(item) {
 // GET user watchlist
 router.get('/', requireAuth, async (req, res) => {
   try {
+    const { type, genre, sortBy, order } = req.query;
+
+    const where = {
+      userId: req.userId,
+    };
+
+    // Optional type filter
+    if (typeof type === 'string' && type.trim() !== '') {
+      const normalizedType = type.trim().toLowerCase();
+
+      const allowedTypes = new Set(['movie', 'series', 'game']);
+      if (!allowedTypes.has(normalizedType)) {
+        return res.status(400).json({ message: 'Invalid type filter' });
+      }
+
+      where.type = normalizedType;
+    }
+
+    // Optional genre filter
+    if (typeof genre === 'string' && genre.trim() !== '') {
+      const normalizedGenre = genre.trim().toLowerCase();
+      where.genres = {
+        has: normalizedGenre,
+      };
+    }
+
+    // Allowed sort fields
+    const allowedSortFields = new Set([
+      'createdAt',
+      'title',
+      'releaseYear',
+      'imdbScore',
+      'rtScore',
+      'mcScore',
+      'sortScore',
+    ]);
+
+    const sortField =
+      typeof sortBy === 'string' && allowedSortFields.has(sortBy)
+        ? sortBy
+        : 'createdAt';  // Default to *date added to watchlist*
+
+    // Fields with descending order by default
+    const defaultDescFields = new Set([
+      'createdAt',
+      'imdbScore',
+      'rtScore',
+      'mcScore',
+      'sortScore',
+    ]);
+
+    const sortOrder =
+      order === 'desc' || order === 'asc'
+        ? order
+        : defaultDescFields.has(sortField)
+        ? 'desc'
+        : 'asc';
+
     const items = await prisma.watchlistItem.findMany({
-      where: { userId: req.userId },
-      orderBy: { createdAt: 'asc' },
+      where,
+      orderBy: { [sortField]: sortOrder },
     });
 
-    res.json(items.map(serializeWatchlistItem));
+    res.json(
+      items.map(serializeWatchlistItem)
+    );
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Failed to load watchlist' });
@@ -41,7 +101,7 @@ function parseCsvArray(value) {
   if (!normalized) return [];
   return normalized
     .split(',')
-    .map((part) => part.trim())
+    .map((part) => part.trim().toLowerCase())
     .filter(Boolean);
 }
 
