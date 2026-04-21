@@ -2,49 +2,36 @@ import { Router } from 'express';
 import { prisma } from '../db.js';
 import { requireAuth } from '../middleware/requireAuth.js';
 import { getMovieDetails } from '../services/omdb.service.js';
+import { buildWatchlistQuery } from '../services/watchlistQuery.service.js';
+import { serializeWatchlistItem } from '../utils/serializeWatchlistItem.util.js';
 import { normalizeRatings } from '../utils/ratings.util.js';
 
 const router = Router();
-
-function serializeWatchlistItem(item) {
-  return {
-    ...item,
-    boxOfficeValue:
-      item.boxOfficeValue != null ? item.boxOfficeValue.toString() : null,
-  };
-}
 
 // GET user watchlist
 router.get('/', requireAuth, async (req, res) => {
   try {
     const { type, genre, sortBy, order, yearGte, yearLte, runtimeLte, } = req.query;
 
-    const where = {
-      userId: req.userId,
-    };
-
-    // Optional type filter
+    // --- Normalize values ---
+    let normalizedType = null;    // Optional type filter
     if (typeof type === 'string' && type.trim() !== '') {
-      const normalizedType = type.trim().toLowerCase();
+      normalizedType = type.trim().toLowerCase();
 
       const allowedTypes = new Set(['movie', 'series', 'game']);
       if (!allowedTypes.has(normalizedType)) {
         return res.status(400).json({ message: 'Invalid type filter' });
       }
-
-      where.type = normalizedType;
     }
 
-    // Optional genre filter
+    let normalizedGenre = null;   // Optional genre filter
     if (typeof genre === 'string' && genre.trim() !== '') {
-      const normalizedGenre = genre.trim().toLowerCase();
-      where.genres = {
-        has: normalizedGenre,
-      };
+      normalizedGenre = genre.trim().toLowerCase();
     }
 
     // Optional year > or < filter
     const currentYear = new Date().getFullYear();
+
     const parsedYearGte =
       typeof yearGte === 'string' && yearGte.trim() !== ''
         ? Number(yearGte)
@@ -75,11 +62,7 @@ router.get('/', requireAuth, async (req, res) => {
       }
     }
 
-    if (
-      parsedYearGte !== null &&
-      parsedYearLte !== null &&
-      parsedYearGte > parsedYearLte
-    ) {
+    if (parsedYearGte !== null && parsedYearLte !== null && parsedYearGte > parsedYearLte) {
       return res.status(400).json({ message: 'yearGte cannot be greater than yearLte' });
     }
 
@@ -97,24 +80,6 @@ router.get('/', requireAuth, async (req, res) => {
       if (parsedRuntimeLte <= 0) {
         return res.status(400).json({ message: 'runtimeLte must be greater than 0' });
       }
-    }
-
-    if (parsedYearGte !== null || parsedYearLte !== null) {
-      where.releaseYear = {};
-
-      if (parsedYearGte !== null) {
-        where.releaseYear.gte = parsedYearGte;
-      }
-
-      if (parsedYearLte !== null) {
-        where.releaseYear.lte = parsedYearLte;
-      }
-    }
-
-    if (parsedRuntimeLte !== null) {
-      where.runtimeMins = {
-        lte: parsedRuntimeLte,
-      };
     }
 
     // Allowed sort fields
@@ -149,9 +114,24 @@ router.get('/', requireAuth, async (req, res) => {
         ? 'desc'
         : 'asc';
 
+    // Call watchlist service to build Prisma *where* and *orderBy*
+    const { where, orderBy } = buildWatchlistQuery({
+      userId: req.userId,
+      filters: {
+        type: normalizedType,
+        genre: normalizedGenre,
+        sortBy: sortField,
+        order: sortOrder,
+        yearGte: parsedYearGte,
+        yearLte: parsedYearLte,
+        runtimeLte: parsedRuntimeLte,
+      },
+    });
+    
+    // Query database
     const items = await prisma.watchlistItem.findMany({
       where,
-      orderBy: { [sortField]: sortOrder },
+      orderBy,
     });
 
     res.json(
@@ -258,34 +238,32 @@ router.post('/', requireAuth, async (req, res) => {
     const data = {
       userId: req.userId,
       imdbId,
+
       title: movie.Title,
-      poster,
-
-      year,
-      releaseYear,
-
       type,
+      poster,
       rated,
 
+      year,
       genre,
+      runtime,
+      language,
+      boxOffice,
+
+      releaseYear,
       genres,
+      runtimeMins,
+      languages,
+      boxOfficeValue,
 
       plot,
       director,
       actors,
 
-      runtime,
-      runtimeMins,
-
-      language,
-      languages,
-
-      boxOffice,
-      boxOfficeValue,
-
       imdbRaw,
       rtRaw,
       mcRaw,
+
       imdbScore,
       rtScore,
       mcScore,

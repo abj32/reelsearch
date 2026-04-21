@@ -1,10 +1,10 @@
-const API_KEY = process.env.API_KEY;
+const OMDB_API_KEY = process.env.OMDB_API_KEY;
 const BASE_URL = "https://www.omdbapi.com/";
 
 async function fetchOmdb(params) {
   const url = new URL(BASE_URL);
 
-  url.searchParams.set("apikey", API_KEY);
+  url.searchParams.set("apikey", OMDB_API_KEY);
 
   for (const [key, value] of Object.entries(params)) {
     url.searchParams.set(key, value);

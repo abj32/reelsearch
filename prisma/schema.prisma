@@ -24,42 +24,44 @@ model User {
 model WatchlistItem {
   userId          Int
   imdbId          String
+
+  // Core metadata
   title           String
-  poster          String?
-
-  year            String    // raw OMDb year text, e.g. "2016", "2019–2022"
-  releaseYear     Int?      // parsed first year for sorting/filtering
-
   type            String
+  poster          String?
   rated           String?
 
+  // Raw OMDb fields
+  year            String?   // raw OMDb year text, e.g. "2016", "2019–2022"
   genre           String?   // raw OMDb genre text
-  genres          String[]  // parsed array
+  runtime         String?   // e.g. "148 min"
+  language        String?   // raw OMDb language text
+  boxOffice       String?   // e.g. "$858,373,000"
 
+  // Parsed / query fields
+  releaseYear     Int?      // parsed first year for sorting/filtering
+  genres          String[]  // parsed array
+  runtimeMins     Int?
+  languages       String[]  // parsed array
+  boxOfficeValue  BigInt?   // parsed integer dollars
+
+  // Descriptive metadata
   plot            String?
   director        String?
   actors          String?
 
-  runtime         String?   // e.g. "148 min"
-  runtimeMins     Int?
-
-  language        String?   // raw OMDb language text
-  languages       String[]  // parsed array
-
-  boxOffice       String?   // e.g. "$858,373,000"
-  boxOfficeValue  BigInt?   // parsed integer dollars
-
+  // Raw ratings
   imdbRaw         String?   // e.g. "8.7/10"
   rtRaw           String?   // e.g. "95%"
   mcRaw           String?   // e.g. "82/100"
 
+  // Normalized ratings
   imdbScore       Float?
   rtScore         Int?      
   mcScore         Int?
   sortScore       Float?    // Average of the 3 available scores
 
   createdAt       DateTime @default(now())
-
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@id([userId, imdbId])

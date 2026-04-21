@@ -65,7 +65,8 @@ Search results display key movie metadata and allow users to add titles directly
 - **Authentication**
    - bcrypt, JWT (stored in an httpOnly cookie)
 - **External API**
-   - [OMDb API](https://www.omdbapi.com/)
+   - [OMDb API](https://www.omdbapi.com/) (movie data)
+   - OpenAI API (natural language watchlist queries)
 - **Deployment**
    - Vercel (frontend)
    - Render (backend)
@@ -78,6 +79,7 @@ Search results display key movie metadata and allow users to add titles directly
 - The **React + Vite frontend** communicates with an **Express REST API**
 - The API handles **authentication, search requests, and watchlist management**
 - Search requests are proxied to the **OMDb API**, and the server fetches full metadata for each result
+- Natural language watchlist queries are parsed using the **OpenAI API** and converted into structured database filters
 - **Prisma ORM** manages database access for user accounts and watchlists
 - Watchlist data is stored in **PostgreSQL (Neon)**
 - Authentication is implemented with **JWT tokens stored in secure httpOnly cookies**
@@ -103,16 +105,23 @@ reelsearch/
 │
 ├─ server/                  # Express backend (API, auth, watchlist features)
 │  ├─ index.js              # Express entry point
+│  ├─ db.js                 # Prisma client initialization
+│  ├─ lib/
+│  │  └─ openai.js          # OpenAI client setup
 │  ├─ routes/
 │  │  ├─ auth.routes.js
+│  │  ├─ chat.routes.js     # Natural language watchlist queries
 │  │  ├─ search.routes.js
 │  │  └─ watchlist.routes.js
 │  ├─ services/
-│  │  └─ omdb.service.js    # OMDb API proxy logic
+│  │  ├─ omdb.service.js    # OMDb API proxy logic
+│  │  ├─ chat.service.js
+│  │  └─ watchlistQuery.service.js
 │  ├─ middleware/
 │  │  └─ requireAuth.js     # JWT cookie authentication middleware
 │  └─ utils/
-│     └─ ratings.util.js    # Rating normalization helpers
+│     └─ ratings.util.js
+│     └─ serializeWatchlistItem.util.js
 │
 ├─ prisma/
 │  ├─ schema.prisma         # Prisma schema defining User & Watchlist models
@@ -168,6 +177,7 @@ Normalize critic ratings to enable future ranking and sorting features.
 - npm (bundled with Node.js)
 - A PostgreSQL database URL (e.g. via [Neon](https://neon.com/), [Supabase](https://supabase.com/), local PostgreSQL)
 - An OMDb API key (free: https://www.omdbapi.com/apikey.aspx)
+- An OpenAI API key (https://platform.openai.com/)
 
 ### Installation and Setup
 1. **Fork or Clone the Repository**
@@ -199,7 +209,10 @@ Normalize critic ratings to enable future ranking and sorting features.
    JWT_SECRET="a-long-random-string-here"
 
    # OMDb API key (used only on the backend)
-   API_KEY="your_omdb_api_key_here"
+   OMDB_API_KEY="your_omdb_api_key_here"
+
+   # OpenAI API key (used for chat-based watchlist queries)
+   OPENAI_API_KEY="your_openai_api_key_here"
 
    # Optional: port for the Express API (default is 5000)
    PORT=5000
@@ -279,6 +292,19 @@ Once `npm run dev` is running:
    - Stores the item for the current user
 - `DELETE /api/watchlist/:imdbId`
    - Removes specific item from the user’s watchlist
+
+### Chat ( /api/chat )
+**Note:** Requires authentication (`requireAuth` middleware)
+- `POST /api/chat/watchlist`  
+   Body: `{ "message": string }`  
+   - Parses natural language input using OpenAI  
+   - Converts the request into structured filters and sorting options  
+   - Returns filtered/sorted watchlist items  
+
+   Example:
+   ```json
+   { "message": "show my sci-fi movies after 2015" }
+   ```
 
 <br>
 
