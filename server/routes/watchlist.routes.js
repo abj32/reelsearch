@@ -3,17 +3,10 @@ import { prisma } from '../db.js';
 import { requireAuth } from '../middleware/requireAuth.js';
 import { getMovieDetails } from '../services/omdb.service.js';
 import { buildWatchlistQuery } from '../services/watchlistQuery.service.js';
+import { serializeWatchlistItem } from '../utils/serializeWatchlistItem.util.js';
 import { normalizeRatings } from '../utils/ratings.util.js';
 
 const router = Router();
-
-function serializeWatchlistItem(item) {
-  return {
-    ...item,
-    boxOfficeValue:
-      item.boxOfficeValue != null ? item.boxOfficeValue.toString() : null,
-  };
-}
 
 // GET user watchlist
 router.get('/', requireAuth, async (req, res) => {
@@ -245,34 +238,32 @@ router.post('/', requireAuth, async (req, res) => {
     const data = {
       userId: req.userId,
       imdbId,
+
       title: movie.Title,
-      poster,
-
-      year,
-      releaseYear,
-
       type,
+      poster,
       rated,
 
+      year,
       genre,
+      runtime,
+      language,
+      boxOffice,
+
+      releaseYear,
       genres,
+      runtimeMins,
+      languages,
+      boxOfficeValue,
 
       plot,
       director,
       actors,
 
-      runtime,
-      runtimeMins,
-
-      language,
-      languages,
-
-      boxOffice,
-      boxOfficeValue,
-
       imdbRaw,
       rtRaw,
       mcRaw,
+
       imdbScore,
       rtScore,
       mcScore,
