@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { prisma } from '../db.js';
 import { requireAuth } from '../middleware/requireAuth.js';
 import { parseWatchlistMessage } from '../services/chat.service.js';
-import { buildWatchlistQuery } from '../services/watchlistQuery.service.js';
+import { normalizeWatchlistFilters, buildWatchlistQuery } from '../services/watchlistQuery.service.js';
 import { serializeWatchlistItem } from '../utils/serializeWatchlistItem.util.js';
 
 const router = Router();
@@ -15,41 +15,47 @@ router.post('/watchlist', requireAuth, async (req, res) => {
       return res.status(400).json({ message: 'message is required' });
     }
 
+    // Send chat to OpenAI service
     const action = await parseWatchlistMessage(message.trim());
 
-    const normalizedGenre =
-      typeof action.genre === 'string' && action.genre.trim() !== ''
-        ? action.genre.trim().toLowerCase()
-        : null;
+    let rawFilters = {};
 
-    let filters = {};
-
-    if (action.intent === 'clear_filters') {
-      filters = {};
-    } else if (action.intent === 'sort_watchlist') {
-      filters = {
-        sortBy: action.sortBy ?? null,
-        order: action.order ?? null,
+    if (action.intent === 'sort_watchlist') {
+      rawFilters = {
+        sortBy: action.sortBy,
+        order: action.order,
       };
     } else if (action.intent === 'filter_watchlist') {
-      filters = {
-        type: action.type ?? null,
-        genre: normalizedGenre,
-        yearGte: action.yearGte ?? null,
-        yearLte: action.yearLte ?? null,
-        runtimeLte: action.runtimeLte ?? null,
-        sortBy: action.sortBy ?? null,
-        order: action.order ?? null,
+      rawFilters = {
+        type: action.type,
+        genre: action.genre,
+
+        yearGte: action.yearGte,
+        yearLte: action.yearLte,
+        runtimeLte: action.runtimeLte,
+
+        sortBy: action.sortBy,
+        order: action.order,
       };
     } else {
       return res.status(400).json({ message: 'Unsupported chat intent' });
     }
 
+    // Call watchlist service to normalize optional filters
+    let filters;
+    try {
+      filters = normalizeWatchlistFilters(rawFilters);
+    } catch (err) {
+      return res.status(400).json({ message: err.message });
+    }
+
+    // Call watchlist service to build Prisma *where* and *orderBy*
     const { where, orderBy } = buildWatchlistQuery({
       userId: req.userId,
       filters,
     });
 
+    // Query database
     const items = await prisma.watchlistItem.findMany({
       where,
       orderBy,
