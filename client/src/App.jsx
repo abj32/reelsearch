@@ -132,7 +132,7 @@ function AppShell() {
 
           {/* Dropdown checks if menuOpen is true and if page is done checkingAuth */}
           {menuOpen && !checkingAuth && (
-            <div className="absolute right-0 mt-2 w-auto bg-white rounded-md text-black text-xs md:text-sm xl:text-base">
+            <div className="absolute right-0 z-50 mt-2 w-auto border border-2 border-gray-200 bg-white rounded-md text-black text-xs md:text-sm xl:text-base">
               {user ? (
                 // If user if logged in
                 <>
