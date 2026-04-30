@@ -10,7 +10,25 @@ import Register from "./pages/Register";
 import Login from "./pages/Login";
 import Profile from "./pages/Profile";
 import Watchlist from './pages/Watchlist';
+import WatchlistChat from './components/WatchlistChat';
 
+// Wrapper to protect pages needing logged in user
+function ProtectedRoute({ user, checkingAuth, children }) {
+  // While still checking /auth/profile on initial load, don't render anything yet
+  if (checkingAuth) {
+    return null;
+  }
+
+  // If there is no user after the check, redirect to /login
+  if (!user) {
+    return (
+      <Navigate to="/login" replace/>
+    );
+  }
+
+  // If user is authenticated, render the protected content
+  return children;
+}
 
 function AppShell() {
   const [results, setResults] = useState([]);   // stores results of search
@@ -88,24 +106,6 @@ function AppShell() {
     }
   }
 
-  // Wrapper to protect pages needing logged in user
-  function ProtectedRoute({ user, checkingAuth, children }) {
-    // While still checking /auth/profile on initial load, don't render anything yet
-    if (checkingAuth) {
-      return null;
-    }
-
-    // If there is no user after the check, redirect to /login
-    if (!user) {
-      return (
-        <Navigate to="/login" replace/>
-      );
-    }
-
-    // If user is authenticated, render the protected content
-    return children;
-  }
-
   return (
     <div className="flex flex-col min-h-screen bg-gray-200">
       
@@ -170,6 +170,7 @@ function AppShell() {
           {/* Protected watchlist page */}
           <Route path="/watchlist" element={<ProtectedRoute user={user} checkingAuth={checkingAuth}>
                                               <Watchlist watchlist={watchlist} setWatchlist={setWatchlist}/>
+                                              <WatchlistChat onResults={setWatchlist} />
                                             </ProtectedRoute>} />
         </Routes>
       </main>

@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { prisma } from '../db.js';
 import { requireAuth } from '../middleware/requireAuth.js';
 import { getMovieDetails } from '../services/omdb.service.js';
-import { buildWatchlistQuery } from '../services/watchlistQuery.service.js';
+import { normalizeWatchlistFilters, buildWatchlistQuery } from '../services/watchlistQuery.service.js';
 import { serializeWatchlistItem } from '../utils/serializeWatchlistItem.util.js';
 import { normalizeRatings } from '../utils/ratings.util.js';
 
@@ -11,121 +11,18 @@ const router = Router();
 // GET user watchlist
 router.get('/', requireAuth, async (req, res) => {
   try {
-    const { type, genre, sortBy, order, yearGte, yearLte, runtimeLte, } = req.query;
-
-    // --- Normalize values ---
-    let normalizedType = null;    // Optional type filter
-    if (typeof type === 'string' && type.trim() !== '') {
-      normalizedType = type.trim().toLowerCase();
-
-      const allowedTypes = new Set(['movie', 'series', 'game']);
-      if (!allowedTypes.has(normalizedType)) {
-        return res.status(400).json({ message: 'Invalid type filter' });
-      }
+    // Call watchlist service to normalize optional filters
+    let filters;
+    try {
+      filters = normalizeWatchlistFilters(req.query);
+    } catch (err) {
+      return res.status(400).json({ message: err.message });
     }
-
-    let normalizedGenre = null;   // Optional genre filter
-    if (typeof genre === 'string' && genre.trim() !== '') {
-      normalizedGenre = genre.trim().toLowerCase();
-    }
-
-    // Optional year > or < filter
-    const currentYear = new Date().getFullYear();
-
-    const parsedYearGte =
-      typeof yearGte === 'string' && yearGte.trim() !== ''
-        ? Number(yearGte)
-        : null;
-
-    if (parsedYearGte !== null) {
-      if (!Number.isInteger(parsedYearGte)) {
-        return res.status(400).json({ message: 'yearGte must be an integer' });
-      }
-
-      if (parsedYearGte < 1888 || parsedYearGte > currentYear + 10) {
-        return res.status(400).json({ message: 'yearGte is invalid' });
-      }
-    }
-
-    const parsedYearLte =
-      typeof yearLte === 'string' && yearLte.trim() !== ''
-        ? Number(yearLte)
-        : null;
-
-    if (parsedYearLte !== null) {
-      if (!Number.isInteger(parsedYearLte)) {
-        return res.status(400).json({ message: 'yearLte must be an integer' });
-      }
-
-      if (parsedYearLte < 1888 || parsedYearLte > currentYear + 10) {   // Date of first film
-        return res.status(400).json({ message: 'yearLte is invalid' });
-      }
-    }
-
-    if (parsedYearGte !== null && parsedYearLte !== null && parsedYearGte > parsedYearLte) {
-      return res.status(400).json({ message: 'yearGte cannot be greater than yearLte' });
-    }
-
-    // Optional runtime < filter
-    const parsedRuntimeLte =
-      typeof runtimeLte === 'string' && runtimeLte.trim() !== ''
-        ? Number(runtimeLte)
-        : null;
-
-    if (parsedRuntimeLte !== null) {
-      if (!Number.isInteger(parsedRuntimeLte)) {
-        return res.status(400).json({ message: 'runtimeLte must be an integer' });
-      }
-
-      if (parsedRuntimeLte <= 0) {
-        return res.status(400).json({ message: 'runtimeLte must be greater than 0' });
-      }
-    }
-
-    // Allowed sort fields
-    const allowedSortFields = new Set([
-      'createdAt',
-      'title',
-      'releaseYear',
-      'imdbScore',
-      'rtScore',
-      'mcScore',
-      'sortScore',
-    ]);
-
-    const sortField =
-      typeof sortBy === 'string' && allowedSortFields.has(sortBy)
-        ? sortBy
-        : 'createdAt';  // Default to *date added to watchlist*
-
-    // Fields with descending order by default
-    const defaultDescFields = new Set([
-      'createdAt',
-      'imdbScore',
-      'rtScore',
-      'mcScore',
-      'sortScore',
-    ]);
-
-    const sortOrder =
-      order === 'desc' || order === 'asc'
-        ? order
-        : defaultDescFields.has(sortField)
-        ? 'desc'
-        : 'asc';
 
     // Call watchlist service to build Prisma *where* and *orderBy*
     const { where, orderBy } = buildWatchlistQuery({
       userId: req.userId,
-      filters: {
-        type: normalizedType,
-        genre: normalizedGenre,
-        sortBy: sortField,
-        order: sortOrder,
-        yearGte: parsedYearGte,
-        yearLte: parsedYearLte,
-        runtimeLte: parsedRuntimeLte,
-      },
+      filters,
     });
     
     // Query database
@@ -134,9 +31,7 @@ router.get('/', requireAuth, async (req, res) => {
       orderBy,
     });
 
-    res.json(
-      items.map(serializeWatchlistItem)
-    );
+    res.json(items.map(serializeWatchlistItem));
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Failed to load watchlist' });
