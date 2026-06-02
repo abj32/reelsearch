@@ -39,7 +39,7 @@ export default function Watchlist({ watchlist, setWatchlist }) {
                 {/* Top bar displays movie\show title, year, type, age rating, and genres */}
                 <div className="flex items-center px-[1%] py-[.5%] bg-white rounded-sm shadow-md">
                   {/* Title */}
-                  <h3 className="m-[.5%] max-w-[45%] text-sm sm:text-base lg:text-lg font-medium">{movie.Title}</h3>
+                  <h3 className="m-[.5%] max-w-[45%] text-xs sm:text-sm md:text-base lg:text-lg font-medium">{movie.Title}</h3>
                   {/* Year */}
                   <p className="m-[.5%] ml-[1.5%] text-xs sm:text-sm lg:text-base text-gray-500">{movie.Year}</p>
 
@@ -77,18 +77,24 @@ export default function Watchlist({ watchlist, setWatchlist }) {
                     {/* Details to the right */}
                     <div className="mx-[1.5%]">
                       {/* Movie Plot */}
-                        <p className="text-xs sm:text-sm lg:text-base"><strong>Plot</strong></p>
+                        <p className="text-xs sm:text-sm lg:text-base font-semibold">Plot</p>
                         <p className="text-xs sm:text-sm lg:text-base text-gray-700">{movie.Plot}</p>
                       
                       <div className="mt-[1%] text-xs md:text-sm xl:text-base text-gray-700">
                         {/* Movie Director */}
-                        <p><strong>Director:</strong> {movie.Director}</p>
+                        <div className="flex items-baseline gap-1">
+                          <span className="font-semibold">Director:</span>
+                          <span>{movie.Director}</span>
+                        </div>
                         {/* Actors/Actresses */}
-                        <p><strong>Actors:</strong> {movie.Actors}</p>
+                        <div className="flex items-baseline gap-1">
+                          <span className="font-semibold">Actors:</span>
+                          <span>{movie.Actors}</span>
+                        </div>
                       </div>
 
                       {/* Ratings */}
-                      <p className="mt-[2%] text-xs md:text-sm xl:text-base"><strong>Ratings</strong></p>
+                      <p className="mt-[2%] mb-[0.5%] text-xs md:text-sm xl:text-base font-semibold">Ratings</p>
                       <div className="flex text-xs md:text-sm xl:text-base text-gray-700">                    
                         {/* IMDB Score */}
                         <p><strong>IMDb:</strong> {imdb}</p>
