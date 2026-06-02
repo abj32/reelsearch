@@ -17,7 +17,7 @@ Frontend:
 [reelsearch-ten.vercel.app](https://reelsearch-ten.vercel.app)
 
 Backend health check:  
-[reelsearch-api.onrender.com/health](https://reelsearch-api.onrender.com/health)
+[https://reelsearch-api-f3qb.onrender.com/health](https://reelsearch-api-f3qb.onrender.com/health)
 
 ⚠️ Note: The app may take ~20–30 seconds to respond on the first request after inactivity because the server runs on Render's free tier.
 
@@ -309,10 +309,15 @@ Once `npm run dev` is running:
 <br>
 
 ## Roadmap & Upcoming Updates
-- 🔄 **Watchlist sorting/ranking**
-   - Add options to sort by critic ranking using the stored normalized rating scores (`imdbScore`, `rtScore`, `mcScore`, `sortScore`)
-- 🎯 **Filtering**
-   - Filter watchlist by type (movie / series / game)
+- 🤖 **AI-Powered Watchlist Search**
+   - Search your watchlist using natural language queries
+   - Find titles by genre, type, release year, runtime, and rating criteria without manually selecting filters
+   - Examples:
+      - "Show me sci-fi movies from the 2010s"
+      - "What are my highest-rated series?"
+      - "Find movies under 2 hours long"
+- ⭐ **Watchlist Insights & Recommendations**
+   - Leverage stored metadata and normalized critic scores for smarter ranking and recommendation features
 - 📝 **Issue-driven refinements:**
    - Smaller UX and styling improvements tracked under the [Issues tab](https://github.com/abj32/reelsearch/issues).
 
