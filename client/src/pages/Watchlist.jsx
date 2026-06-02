@@ -35,9 +35,9 @@ export default function Watchlist({ watchlist, setWatchlist }) {
             const mc   = getRatingLabel(movie, "Metacritic");
             
             return (
-              <li key={movie.imdbID} className="relative m-[1%] my-[2%] md:my-[1.5%] xl:my-[1%] bg-white rounded-lg shadow-md">
+              <li key={movie.imdbID} className="relative m-[1%] my-[2%] md:my-[1.5%] xl:my-[1%]">
                 {/* Top bar displays movie\show title, year, type, age rating, and genres */}
-                <div className="group relative flex items-center px-[1%] py-[.5%]">
+                <div className="flex items-center px-[1%] py-[.5%] bg-white rounded-sm shadow-md">
                   {/* Title */}
                   <h3 className="m-[.5%] max-w-[45%] text-sm sm:text-base lg:text-lg font-medium">{movie.Title}</h3>
                   {/* Year */}
@@ -59,9 +59,10 @@ export default function Watchlist({ watchlist, setWatchlist }) {
                   <button onClick={() => handleDelete(movie.imdbID)} className="ml-auto text-xs sm:text-sm lg:text-base">
                     🗑️
                   </button>
+                </div>
 
-                  {/* On hover panel displays movie poster, plot, director, actors, and critic ratings */}
-                  <div className="pointer-events-none absolute left-0 right-0 top-full z-10 hidden group-hover:flex items-start p-[1.5%] bg-gray-100 shadow-lg rounded-lg">
+                {/* Panel displays movie poster, plot, director, actors, and critic ratings */}
+                  <div className="flex items-start p-[1.5%] bg-gray-100 shadow-lg rounded-lg">
                     {/* Movie Poster */}
                     <img
                       className="w-[17%] rounded"
@@ -98,7 +99,6 @@ export default function Watchlist({ watchlist, setWatchlist }) {
                       </div>
                     </div>
                   </div>
-                </div>
               </li>
             );
           })}
