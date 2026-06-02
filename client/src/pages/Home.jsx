@@ -51,7 +51,7 @@ export default function Home( { user, results, watchlist, setWatchlist }) {
 
               return (
                 // Movie Card
-                <li key={movie.imdbID} className="overflow-hidden flex flex-col w-[17%] bg-white rounded-lg shadow-lg">
+                <li key={movie.imdbID} className="overflow-hidden flex flex-col w-[46%] sm:w-[30%] md:w-[22%] lg:w-[17%] bg-white rounded-lg shadow-lg">
                   {/* Movie Poster */}
                   <img
                     src={movie.Poster !== "N/A" ? movie.Poster : "https://placehold.co/300x412?text=No+Image"}
@@ -67,17 +67,17 @@ export default function Home( { user, results, watchlist, setWatchlist }) {
                     {/* Movie Details */}
                     <div className="flex flex-col p-[4%] md:p-[3%] w-[75%]">
                       {/* Movie Title */}
-                      <h3 className="pb-[2px] md:pb-[4px] xl:pb-[6px] text-[8px] sm:text-[10px] md:text-[12px] lg:text-[14px] xl:text-[16px] font-semibold">{movie.Title}</h3>
+                      <h3 className="pb-[2px] md:pb-[4px] xl:pb-[6px] text-[12px] md:text-[13px] lg:text-[14px] xl:text-[16px] font-semibold">{movie.Title}</h3>
                       <div className="flex justify-start items-center gap-[5%] md:gap-[6%] lg:gap-[7%]">
 
                       {/* Movie Year */}
-                      <span className="max-w-[31%] lg:max-w-[33px] xl:max-w-[38px] text-[6px] sm:text-[8px] md:text-[10px] lg:text-[12px] xl:text-[14px] text-gray-600">{movie.Year}</span>
+                      <span className="max-w-[31%] lg:max-w-[33px] xl:max-w-[38px] text-[10px] md:text-[11px] lg:text-[12px] xl:text-[14px] text-gray-600">{movie.Year}</span>
                       {/* Entertainment Type */}
-                      <span className={`flex items-center justify-center p-[1%] w-[10px] sm:w-[14px] md:w-[18px] lg:w-[22px] xl:w-[26px] text-white text-[4px] sm:text-[5px] md:text-[6px] lg:text-[8px] xl:text-[10px] font-bold rounded ${color}`}>
+                      <span className={`flex items-center justify-center p-[1%] px-[4%] text-white text-[6px] md:text-[7px] lg:text-[8px] xl:text-[10px] font-bold rounded ${color}`}>
                         {label}
                       </span>
                       {/* Age Rating */}
-                      <span className="flex items-center p-[1%] px-[3%] text-[4px] sm:text-[5px] md:text-[6px] lg:text-[8px] xl:text-[10px] font-semibold text-gray-700 bg-gray-200 border border-gray-400 rounded">
+                      <span className="flex items-center p-[1%] px-[3%] text-[6px] md:text-[7px] lg:text-[8px] xl:text-[10px] font-semibold text-gray-700 bg-gray-200 border border-gray-400 rounded">
                         {movie.Rated !== "N/A" ? movie.Rated : "NR"}
                       </span>
                       </div>
@@ -91,8 +91,9 @@ export default function Home( { user, results, watchlist, setWatchlist }) {
                       ) : (
                         // + button for unadded movies/shows
                         <button
+                          type="button"
                           onClick={() => handleAdd(movie)}
-                          className="w-full h-full text-[12px] sm:text-[15px] md:text-[18px] lg:text-[22px] xl:text-[26px] text-white bg-indigo-600"
+                          className="w-full h-full text-[20px] lg:text-[22px] xl:text-[26px] text-white bg-indigo-600"
                         >
                           +
                         </button>
