@@ -37,14 +37,10 @@ Search results display key movie metadata and allow users to add titles directly
 
 <br>
 
-### Watchlist (Expanded Details)
+### Watchlist
 
 <p align="center">
   <img src="docs/watchlist-details.png" width="900">
-</p>
-
-<p align="center">
-  Hovering over a watchlist item reveals stored metadata including plot, cast, and critic ratings.
 </p>
 
 <br>
@@ -309,13 +305,13 @@ Once `npm run dev` is running:
 <br>
 
 ## Roadmap & Upcoming Updates
-- 🤖 **AI-Powered Watchlist Search**
-   - Search your watchlist using natural language queries
-   - Find titles by genre, type, release year, runtime, and rating criteria without manually selecting filters
+- 🤖 **AI-Powered Content Discovery**
+   - Discover movies, TV series, and games using natural language prompts
+   - Receive personalized recommendations based on genres, themes, actors, directors, moods, and viewing preferences
    - Examples:
-      - "Show me sci-fi movies from the 2010s"
-      - "What are my highest-rated series?"
-      - "Find movies under 2 hours long"
+      - "Recommend a sci-fi movie like Interstellar"
+      - "What are some suspenseful mystery series?"
+      - "Suggest a comedy that's good for family movie night"
 - ⭐ **Watchlist Insights & Recommendations**
    - Leverage stored metadata and normalized critic scores for smarter ranking and recommendation features
 - 📝 **Issue-driven refinements:**
