@@ -13,7 +13,6 @@ app.set("trust proxy", 1);
 
 const allowedOrigins = [
   process.env.CLIENT_URL,
-  'https://reelsearch-git-fix-mobile-auth-aidanbjones32-9555s-projects.vercel.app',
   'http://localhost:5173',
 ].filter(Boolean);
 
