@@ -11,7 +11,7 @@ const app = express();
 
 app.set("trust proxy", 1);
 
-const allowedOrigin = process.env.CLIENT_URL || 'http://localhost:5173';
+const allowedOrigin = process.env.CLIENT_URL || 'https://reelsearch-git-fix-mobile-auth-aidanbjones32-9555s-projects.vercel.app/' || 'http://localhost:5173';
 
 app.use(cors({
   origin: allowedOrigin,
