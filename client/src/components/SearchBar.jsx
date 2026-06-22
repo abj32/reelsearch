@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { searchMovies } from "../services/search";
 
-export default function SearchBar({ setResults }) {
+export default function SearchBar({ setResults, setSearchMode }) {
   const [query, setQuery] = useState("");
   const [searchMessage, setSearchMessage] = useState("");
   const navigate = useNavigate();
@@ -23,11 +23,7 @@ export default function SearchBar({ setResults }) {
     try {
       const movies = await searchMovies(trimmed);
       setResults(movies);
-
-      if (movies.length === 0) {
-        setSearchMessage("No movies found.");
-      }
-
+      setSearchMode('searched');
       navigate("/");
     } catch (err) {
       console.error("Search failed", err);
@@ -42,22 +38,36 @@ export default function SearchBar({ setResults }) {
   }
 
   return (
-    <div className="relative">
+    <div className="relative w-full">
       <form onSubmit={handleSubmit}>
-        <input
-          type="text"
-          placeholder="Search for Movie Title..."
-          value={query}
-          onChange={e => setQuery(e.target.value)}
-          className="p-3 w-full text-base sm:text-lg md:text-xl indent-1 sm:indent-2 md:indent-3 lg:indent-4 border border-gray-300 rounded-full shadow-md focus:outline-none focus:ring-2 focus:ring-indigo-400"
-        />
+        <div className="group flex items-center gap-2.5 rounded-full border border-border bg-surface px-4 py-2.5 transition focus-within:border-primary/60 focus-within:bg-surface-2 hover:border-border-strong">
+          <svg
+            className="h-4.5 w-4.5 shrink-0 text-faint transition group-focus-within:text-primary"
+            viewBox="0 0 20 20"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            aria-hidden="true"
+          >
+            <circle cx="9" cy="9" r="6" />
+            <path d="m17 17-3.2-3.2" strokeLinecap="round" />
+          </svg>
+          <input
+            type="text"
+            placeholder="Search films, series, games..."
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            aria-label="Search"
+            className="w-full bg-transparent text-sm text-foreground placeholder:text-faint focus:outline-none sm:text-base"
+          />
+        </div>
 
         {searchMessage && (
-          <div className="absolute left-0 mt-2 w-full text-sm sm:text-base md:text-lg bg-red-100 border border-red-400 text-red-700 px-3 py-2 rounded-md shadow">
+          <div className="absolute left-0 right-0 z-30 mt-2 rounded-lg border border-destructive/40 bg-destructive/15 px-3 py-2 text-sm text-foreground shadow-lg">
             {searchMessage}
           </div>
         )}
       </form>
     </div>
-  )
+  );
 }

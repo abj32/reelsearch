@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { BrowserRouter, Routes, Route, NavLink, useNavigate, Navigate } from "react-router-dom";
 import Home from './pages/Home';
 import SearchBar from "./components/SearchBar";
@@ -15,16 +15,10 @@ import WatchlistChat from './components/WatchlistChat';
 // Wrapper to protect pages needing logged in user
 function ProtectedRoute({ user, checkingAuth, children }) {
   // While still checking /auth/profile on initial load, don't render anything yet
-  if (checkingAuth) {
-    return null;
-  }
+  if (checkingAuth) return null;
 
   // If there is no user after the check, redirect to /login
-  if (!user) {
-    return (
-      <Navigate to="/login" replace/>
-    );
-  }
+  if (!user) return <Navigate to="/login" replace/>;
 
   // If user is authenticated, render the protected content
   return children;
@@ -32,13 +26,14 @@ function ProtectedRoute({ user, checkingAuth, children }) {
 
 function AppShell() {
   const [results, setResults] = useState([]);   // stores results of search
-
+  const [searchMode, setSearchMode] = useState('idle'); // 'idle' | 'searched'
   const [user, setUser] = useState(null);        // stores logged-in user (or null)
   const [checkingAuth, setCheckingAuth] = useState(true); // while we call /auth/profile on load
   const [menuOpen, setMenuOpen] = useState(false);        // dropdown state
   const [watchlist, setWatchlist] = useState([]);   // stores watchlist
   const [isApiLoading, setIsApiLoading] = useState(false);  // global API loading state
 
+  const menuRef = useRef(null);
   const navigate = useNavigate();
 
   // Check if user is logged in on first load via their cookie
@@ -90,6 +85,7 @@ function AppShell() {
   // Clear search results (for when user clicks home button)
   function handleHome() {
     setResults([]);
+    setSearchMode('idle');
   }
 
   // Deactivate user, watchlist and menu on logout
@@ -106,57 +102,100 @@ function AppShell() {
     }
   }
 
+  const initial = user?.email?.[0]?.toUpperCase() || "?";
+
   return (
-    <div className="flex flex-col min-h-screen bg-gray-200">
+    <div className="flex min-h-screen flex-col bg-background">
       
-      {/* Header area for logo, search bar, and watchlist (later user profile) */}
-      <header className="flex flex-row items-center relative px-1 sm:px-2 md:px-3 lg:px-4 xl:px-5 py-10 text-white bg-indigo-600 ">
-        {/* Logo sends user back to home page */}
-        <NavLink to="/" onClick={handleHome} className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold tracking-wide" style={{ fontFamily: "'Lilita_One', cursive, sans-serif" }}>
-          🎥ReelSearch
-        </NavLink>
+      {/* Header */}
+      <header className="sticky top-0 z-40 border-b border-border bg-background/85 backdrop-blur-md">
+        <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3 sm:gap-5 sm:px-6">
+          {/* Logo */}
+          <NavLink
+            to="/"
+            onClick={handleHome}
+            className="flex shrink-0 items-center gap-2 font-serif text-xl font-semibold tracking-tight text-foreground sm:text-2xl"
+          >
+            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary font-serif italic text-on-primary">R</span>
+            <span className="hidden sm:inline">ReelSearch</span>
+          </NavLink>
 
-        {/* Search Bar */}
-        <div className="absolute left-1/2 -translate-x-1/2 w-1/3">
-          <SearchBar setResults={setResults} />
-        </div>
+          {/* Search bar */}
+          <div className="mx-auto w-full max-w-md flex-1">
+            <SearchBar setResults={setResults} setSearchMode={setSearchMode} />
+          </div>
 
-        {/* Icon button with dropdown */}
-        <div className="relative ml-auto">
-          {/* Profile icon */}
-          <button type="button" disabled={isApiLoading} onClick={() => setMenuOpen((prev) => !prev)} className={`flex items-center justify-center mr-1 w-9 sm:w-10 md:w-11 lg:w-13 xl:w-15 h-9 sm:h-10 md:h-11 lg:h-13 xl:h-15 rounded-full bg-white/20 border border-white/30 ${
-            isApiLoading ? "opacity-50 cursor-not-allowed" : "hover:bg-white/30"
-          }`}>
-            <span className="text-base sm:text-lg md:text-xl lg:text-2xl xl:text-3xl">👤</span>
-          </button>
+          {/* Watchlist icon with count badge — visible at all widths */}
+          <NavLink
+            to="/watchlist"
+            aria-label="Watchlist"
+            className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-border bg-surface text-foreground transition hover:border-border-strong hover:bg-surface-2"
+          >
+            <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+              <path d="M6 4h12a1 1 0 0 1 1 1v15l-7-4-7 4V5a1 1 0 0 1 1-1Z" strokeLinejoin="round" />
+            </svg>
+            {watchlist.length > 0 && (
+              <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1 text-[11px] font-bold text-on-primary">
+                {watchlist.length}
+              </span>
+            )}
+          </NavLink>
 
-          {/* Dropdown checks if menuOpen is true and if page is done checkingAuth */}
-          {menuOpen && !checkingAuth && (
-            <div className="absolute right-0 z-50 mt-2 w-auto border border-2 border-gray-200 bg-white rounded-md text-black text-xs md:text-sm xl:text-base">
+          {/* Profile avatar + dropdown */}
+          <div className="relative shrink-0" ref={menuRef}>
+            <button
+              type="button"
+              disabled={isApiLoading}
+              onClick={() => setMenuOpen((p) => !p)}
+              aria-label="Account menu"
+              aria-haspopup="menu"
+              aria-expanded={menuOpen}
+              className={`flex h-10 w-10 items-center justify-center rounded-full border text-sm font-semibold transition ${
+                user
+                  ? "border-primary/50 bg-primary/15 text-primary"
+                  : "border-border bg-surface text-muted"
+              } ${isApiLoading ? "opacity-50" : "hover:border-border-strong"}`}
+            >
               {user ? (
-                // If user if logged in
-                <>
-                  <NavLink to="/profile" onClick={() => setMenuOpen(false)} className="block rounded-md px-4 sm:px-5 py-1.75 sm:py-2 xl:py-2.25 hover:bg-gray-100">Profile</NavLink>
-                  <NavLink to="/watchlist" onClick={() => setMenuOpen(false)} className="block px-4 sm:px-5 py-1.75 sm:py-2 xl:py-2.25 hover:bg-gray-100">Watchlist</NavLink>
-                  <button onClick={handleLogout} className="block rounded-md w-full text-left px-4 sm:px-5 py-1.75 sm:py-2 xl:py-2.2 hover:bg-gray-100">Log out</button>
-                </>
+                initial
               ) : (
-                // If user is not logged in
-                <>
-                  <NavLink to="/register" onClick={() => setMenuOpen(false)} className="block rounded-md px-4 py-1 sm:py-2 hover:bg-gray-100">Register</NavLink>
-                  <NavLink to="/login" onClick={() => setMenuOpen(false)} className="block rounded-md px-4 py-1 sm:py-2 hover:bg-gray-100">Log in</NavLink>
-                </>
+                <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                  <circle cx="12" cy="8" r="3.5" />
+                  <path d="M5 19a7 7 0 0 1 14 0" strokeLinecap="round" />
+                </svg>
               )}
-            </div>
-          )}
+            </button>
+
+            {menuOpen && !checkingAuth && (
+              <div className="absolute right-0 z-50 mt-2 w-48 overflow-hidden rounded-xl border border-border bg-elevated p-1 shadow-2xl shadow-black/50 animate-fade-up">
+                {user ? (
+                  <>
+                    <div className="px-3 py-2">
+                      <p className="text-xs text-faint">Signed in as</p>
+                      <p className="truncate text-sm font-medium text-foreground">{user.email}</p>
+                    </div>
+                    <div className="my-1 h-px bg-border" />
+                    <NavLink to="/profile" onClick={() => setMenuOpen(false)} className="block rounded-lg px-3 py-2 text-sm text-foreground transition hover:bg-surface-2">Profile</NavLink>
+                    <NavLink to="/watchlist" onClick={() => setMenuOpen(false)} className="block rounded-lg px-3 py-2 text-sm text-foreground transition hover:bg-surface-2">Watchlist</NavLink>
+                    <button onClick={handleLogout} className="block w-full rounded-lg px-3 py-2 text-left text-sm text-destructive transition hover:bg-surface-2">Log out</button>
+                  </>
+                ) : (
+                  <>
+                    <NavLink to="/login" onClick={() => setMenuOpen(false)} className="block rounded-lg px-3 py-2 text-sm text-foreground transition hover:bg-surface-2">Log in</NavLink>
+                    <NavLink to="/register" onClick={() => setMenuOpen(false)} className="block rounded-lg px-3 py-2 text-sm text-foreground transition hover:bg-surface-2">Register</NavLink>
+                  </>
+                )}
+              </div>
+            )}
+          </div>
         </div>
       </header>
 
       {/* Main area for displaying search results and user watchlist */}
-      <main className="p-3 sm:p-4 md:p-5 lg:p-6">
+      <main className="flex-1 px-4 py-6 sm:px-6 sm:py-8">
         <Routes>
           {/* Home page */}
-          <Route path="/" element={<Home user={user} results={results} watchlist={watchlist} setWatchlist={setWatchlist} />} />
+          <Route path="/" element={<Home user={user} results={results} searchMode={searchMode} watchlist={watchlist} setWatchlist={setWatchlist} />} />
 
           {/* Register route */}
           <Route path="/register" element={<Register onAuth={setUser}/>}/>
@@ -165,7 +204,7 @@ function AppShell() {
 
           {/* Protected profile page */}
           <Route path="/profile" element={<ProtectedRoute user={user} checkingAuth={checkingAuth}>
-                                            <Profile user={user}/>
+                                            <Profile user={user} watchlist={watchlist} onLogout={handleLogout} />
                                           </ProtectedRoute>}/>
           {/* Protected watchlist page */}
           <Route path="/watchlist" element={<ProtectedRoute user={user} checkingAuth={checkingAuth}>
@@ -175,7 +214,7 @@ function AppShell() {
         </Routes>
       </main>
     </div>
-  )
+  );
 }
 
 export default function App() {
