@@ -40,7 +40,7 @@ Search results display key movie metadata and allow users to add titles directly
 ### Watchlist
 
 <p align="center">
-  <img src="docs/watchlist-details.png" width="900">
+  <img src="docs/watchlist.png" width="900">
 </p>
 
 <br>
