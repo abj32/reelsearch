@@ -16,6 +16,10 @@ const allowedOrigins = [
   'http://localhost:5173',
 ].filter(Boolean);
 
+const previewOriginRegex = process.env.VERCEL_PREVIEW_ORIGIN_REGEX
+  ? new RegExp(process.env.VERCEL_PREVIEW_ORIGIN_REGEX)
+  : null;
+
 app.use(
   cors({
     origin(origin, callback) {
