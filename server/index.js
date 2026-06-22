@@ -16,27 +16,18 @@ const allowedOrigins = [
   'http://localhost:5173',
 ].filter(Boolean);
 
-const previewOriginRegex = process.env.VERCEL_PREVIEW_ORIGIN_REGEX
-  ? new RegExp(process.env.VERCEL_PREVIEW_ORIGIN_REGEX)
-  : null;
+app.use(cors({
+  origin(origin, callback) {
+    if (!origin) return callback(null, true);
 
-app.use(
-  cors({
-    origin(origin, callback) {
-      if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
 
-      const isAllowed =
-        allowedOrigins.includes(origin) ||
-        previewOriginRegex?.test(origin);
-
-      callback(
-        isAllowed ? null : new Error(`CORS blocked origin: ${origin}`),
-        isAllowed
-      );
-    },
-    credentials: true,
-  })
-);
+    return callback(new Error(`Origin not allowed: ${origin}`));
+  },
+  credentials: true,
+}))
 
 app.use(express.json());
 app.use(cookieParser());
