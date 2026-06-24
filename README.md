@@ -99,7 +99,7 @@ The profile page displays account info alongside watchlist stats computed from s
 
 ## System Architecture
 
-🎥 ReelSearch follows a typical full-stack architecture:
+ReelSearch follows a typical full-stack architecture:
 - The **React + Vite frontend** communicates with an **Express REST API**
 - The API handles **authentication, search requests, and watchlist management**
 - Search requests are proxied to the **OMDb API**, and the server fetches full metadata for each result
