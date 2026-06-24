@@ -1,4 +1,4 @@
-# 🎥 ReelSearch
+# ReelSearch
 
 <p align="center">
   <img src="https://img.shields.io/badge/Frontend-React-blue">
@@ -7,7 +7,7 @@
   <img src="https://img.shields.io/badge/License-MIT-green">
 </p>
 
-🎥 ReelSearch is a full-stack web application for discovering movies, TV series, and games through the OMDb catalog and saving them to a personal watchlist backed by PostgreSQL. Users can search the catalog, explore detailed movie metadata, and maintain a persistent watchlist of saved titles.
+ReelSearch is a full-stack web application for discovering movies, TV series, and games through the OMDb catalog. Users can search the catalog, sort and filter results by rating, type, and year, explore detailed metadata with aggregated critic scores, and maintain a persistent personal watchlist.
 
 <br>
 
@@ -17,7 +17,7 @@ Frontend:
 [reelsearch-ten.vercel.app](https://reelsearch-ten.vercel.app)
 
 Backend health check:  
-[reelsearch-api.onrender.com/health](https://reelsearch-api.onrender.com/health)
+[https://reelsearch-api-f3qb.onrender.com/health](https://reelsearch-api-f3qb.onrender.com/health)
 
 ⚠️ Note: The app may take ~20–30 seconds to respond on the first request after inactivity because the server runs on Render's free tier.
 
@@ -37,14 +37,38 @@ Search results display key movie metadata and allow users to add titles directly
 
 <br>
 
-### Watchlist (Expanded Details)
+### Watchlist
 
 <p align="center">
-  <img src="docs/watchlist-details.png" width="900">
+  <img src="docs/watchlist.png" width="900">
 </p>
 
 <p align="center">
-  Hovering over a watchlist item reveals stored metadata including plot, cast, and critic ratings.
+Saved titles are displayed in a poster grid with sort and filter controls. Items can be removed or opened for full details.
+</p>
+
+<br>
+
+### Item Detail
+
+<p align="center">
+  <img src="docs/item-detail.png" width="900">
+</p>
+
+<p align="center">
+Clicking any poster card opens a full detail overlay with plot, cast, director, and critic scores from IMDb, Rotten Tomatoes, and Metacritic.
+</p>
+
+<br>
+
+### Profile
+
+<p align="center">
+  <img src="docs/profile.png" width="900">
+</p>
+
+<p align="center">
+The profile page displays account info alongside watchlist stats computed from saved titles.
 </p>
 
 <br>
@@ -55,7 +79,7 @@ Search results display key movie metadata and allow users to add titles directly
    - React
    - Vite
    - React Router
-   - Tailwind CSS
+   - Tailwind CSS v4
 - **Backend**
    - Node.js
    - Express
@@ -92,6 +116,7 @@ reelsearch/
 ├─ client/                  # React + Vite frontend
 │  ├─ src/
 │  │  ├─ App.jsx
+│  │  ├─ index.css          # Tailwind v4 theme tokens and global styles
 │  │  ├─ pages/
 │  │  │  ├─ Home.jsx
 │  │  │  ├─ Login.jsx
@@ -99,8 +124,18 @@ reelsearch/
 │  │  │  ├─ Register.jsx
 │  │  │  └─ Watchlist.jsx
 │  │  ├─ components/
+│  │  │  ├─ AuthForm.jsx    # Shared login/register form
+│  │  │  ├─ Dropdown.jsx    # Accessible sort/filter dropdown
+│  │  │  ├─ ItemDetail.jsx  # Full-screen detail overlay
+│  │  │  ├─ MediaGrid.jsx   # Shared poster grid with sort/filter toolbar
+│  │  │  ├─ PosterCard.jsx  # Individual poster card with rating badge
 │  │  │  ├─ SearchBar.jsx
-│  │  └─ services/          # Frontend API wrappers (auth, search, watchlist)
+│  │  │  └─ WatchlistChat.jsx
+│  │  ├─ utils/
+│  │  │  ├─ mediaHelpers.js  # Sort/filter logic and rating derivation
+│  │  │  └─ normalizeMovie.js # Shapes watchlist API responses for the UI
+│  │  └─ services/           # Frontend API wrappers (auth, search, watchlist)
+│  ├─ vercel.json           # Rewrites /api/* to the Render backend in production
 │  └─ vite.config.js
 │
 ├─ server/                  # Express backend (API, auth, watchlist features)
@@ -120,11 +155,12 @@ reelsearch/
 │  ├─ middleware/
 │  │  └─ requireAuth.js     # JWT cookie authentication middleware
 │  └─ utils/
-│     └─ ratings.util.js
+│     ├─ normalizeSearchResult.js  # Normalizes OMDb search results before sending to client
+│     ├─ ratings.util.js
 │     └─ serializeWatchlistItem.util.js
 │
 ├─ prisma/
-│  ├─ schema.prisma         # Prisma schema defining User & Watchlist models
+│  ├─ schema.prisma         # Prisma schema defining User &Watchlist models
 │  └─ migrations/           # Generated Prisma migrations
 │
 ├─ package.json             # Root scripts for dev / server / client
@@ -141,6 +177,8 @@ Search the OMDb catalog by title and return enriched metadata for each result.
 
 - Results display key information such as poster, title, year, type, and age rating for quick browsing
 - The backend fetches full metadata for each unique result before returning it to the client
+- Results can be sorted by relevance, rating, title, or release year, and filtered by content type (Movies, Series, or Games)
+- Clicking a poster card opens a detail overlay with plot, director, cast, and individual scores from IMDb, Rotten Tomatoes, and Metacritic
 - Users can add titles directly to their watchlist from the search results
 
 ### 👤 User Accounts & Authentication
@@ -148,7 +186,8 @@ Create an account and securely manage a personal watchlist.
 - Users can register and log in with email and password
 - Passwords are securely hashed using `bcrypt`
 - Authentication is handled through a signed JWT stored in a secure `httpOnly` cookie
-- Logged-in users can view their email and account creation date via **Profile Icon → Profile**
+- Logged-in users can view their profile via the avatar icon in the header → **Profile**, which shows their email, member since date, and watchlist stats
+- The profile page displays watchlist stats computed from saved titles: total items, composite average rating, and a breakdown by Movies, Series, and Games
 
 ### 📺 Persistent Watchlist
 
@@ -157,16 +196,18 @@ Save titles to a personal watchlist backed by PostgreSQL.
 - Movies, series, and games can be added directly from search results
 - Watchlist items are stored per user using **Prisma ORM** and **PostgreSQL**
 - Items can be removed from the watchlist at any time
-- Hovering over an item reveals expanded metadata including plot, director, cast, and critic ratings
+Clicking a poster card opens a detail overlay with plot, director, cast, and critic ratings
+- Watchlist items can be sorted and filtered using the same controls as search results
+- A built-in assistant lets users filter and sort their watchlist using plain-English queries such as "show my sci-fi movies after 2015," powered by the OpenAI API
 
 ### ⭐ Ratings & Normalization
 
-Normalize critic ratings to enable future ranking and sorting features.
+Normalize critic ratings from multiple sources into a single comparable score.
 
-- OMDb ratings (IMDb, Rotten Tomatoes, Metacritic) are displayed in their familiar formats (e.g., IMDb: 8.7/10, Rotten Tomatoes: 87%)
-- Ratings are normalized internally into comparable scores
-- A combined average `sortScore` is computed and stored
-- These normalized scores are not yet displayed in the UI but will power future ranking and filtering features
+- OMDb ratings (IMDb, Rotten Tomatoes, Metacritic) are normalized to a 0–100 scale and averaged into a composite `sortScore`
+- The composite score is displayed as a star badge (0–10) on every poster card
+- Individual scores from all three sources are shown in full inside the item detail overlay
+- The `sortScore` also powers the "Rating" sort option on both the search results and watchlist grids
 
 <br>
 
@@ -216,6 +257,13 @@ Normalize critic ratings to enable future ranking and sorting features.
 
    # Optional: port for the Express API (default is 5000)
    PORT=5000
+
+   # Optional: set on your Render backend to allow requests from your production frontend
+   CLIENT_URL="https://your-frontend.vercel.app"
+
+   # Optional: set on your Render backend to allow Vercel preview deployment URLs
+   # Use a regex matching your preview URL pattern, e.g. "https://reelsearch-.*\.vercel\.app"
+   VERCEL_PREVIEW_ORIGIN_REGEX="your-regex-here"
    ```
 4. **Running the Development Server**\
    From the project root run:
@@ -248,13 +296,14 @@ Once `npm run dev` is running:
    - Calls OMDb using your API_KEY
    - Deduplicates results
    - Fetches full details for each unique imdbID
-   - Returns a list of detailed movie objects to the client
+   - Normalizes ratings from IMDb, Rotten Tomatoes, and Metacritic into a composite score
+   - Returns a list of enriched movie objects to the client
 3. **Managing Your Watchlist**
 - After searching, click the “+” button on a card to add it to your watchlist
 - The frontend calls:
    - `POST /api/watchlist` with `{ "imdbId": "<imdbID>" }`
 - The item is stored in your watchlist in the database with a relation to your userId
-- Visit the **Watchlist** page (via **Profile Icon** -> **Watchlist**) to see your saved items, view their extra details, and remove them
+- Visit the **Watchlist** page via the bookmark icon in the header (or **Avatar → Watchlist**) to browse saved items, view full details, and remove titles
 
 <br>
 
@@ -279,7 +328,7 @@ Once `npm run dev` is running:
 
 ### Search ( /api/search )
 - `GET /api/search?q=<query>`\
-   Calls OMDb using the backend’s API_KEY, deduplicates results, and returns an array of detailed movie objects
+   Calls OMDb using the backend's API_KEY, deduplicates results, fetches full metadata for each unique result, normalizes ratings into a composite `sortScore`, and returns an array of enriched movie objects
 
 ### Watchlist ( /api/watchlist )
 **Note:** All watchlist routes require authentication (`requireAuth` middleware)
@@ -309,10 +358,15 @@ Once `npm run dev` is running:
 <br>
 
 ## Roadmap & Upcoming Updates
-- 🔄 **Watchlist sorting/ranking**
-   - Add options to sort by critic ranking using the stored normalized rating scores (`imdbScore`, `rtScore`, `mcScore`, `sortScore`)
-- 🎯 **Filtering**
-   - Filter watchlist by type (movie / series / game)
+- 🤖 **AI-Powered Content Discovery**
+   - Discover movies, TV series, and games using natural language prompts
+   - Receive personalized recommendations based on genres, themes, actors, directors, moods, and viewing preferences
+   - Examples:
+      - "Recommend a sci-fi movie like Interstellar"
+      - "What are some suspenseful mystery series?"
+      - "Suggest a comedy that's good for family movie night"
+- ⭐ **Watchlist Insights & Recommendations**
+   - Leverage stored metadata and normalized critic scores for smarter ranking and recommendation features
 - 📝 **Issue-driven refinements:**
    - Smaller UX and styling improvements tracked under the [Issues tab](https://github.com/abj32/reelsearch/issues).
 

@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "https://reelsearch-api-f3qb.onrender.com/api/:path*"
+    }
+  ]
+}

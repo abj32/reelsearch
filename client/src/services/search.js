@@ -1,7 +1,9 @@
 import { request } from "./api";
 
-export function searchMovies(query) {
-  return request(`/search?q=${encodeURIComponent(query)}`, {
+export async function searchMovies(query) {
+  const data = await request(`/search?q=${encodeURIComponent(query)}`, {
     method: "GET",
   });
+  
+  return Array.isArray(data) ? data : [];
 }

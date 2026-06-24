@@ -65,19 +65,19 @@ export default function WatchlistChat({ onResults }) {
   return (
     <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-3">
       {isOpen && (
-        <div className="w-80 rounded-2xl border border-slate-700 bg-slate-900/95 p-4 shadow-2xl">
+        <div className="w-80 max-w-[calc(100vw-3rem)] rounded-2xl border border-border bg-surface/95 p-4 shadow-2xl shadow-black/60 backdrop-blur-md animate-fade-up">
           <div className="mb-3">
-            <h3 className="text-sm font-semibold text-white">
+            <h3 className="font-serif text-base text-foreground">
               Watchlist Assistant
             </h3>
-            <p className="text-xs text-slate-400">
-              Try: “show my sci-fi movies after 2015”
+            <p className="text-xs text-faint">
+              Try: &ldquo;show my sci-fi movies after 2015&rdquo;
             </p>
           </div>
 
           <div className="mb-3 max-h-64 space-y-2 overflow-y-auto pr-1">
             {chatLog.length === 0 ? (
-              <p className="text-sm text-slate-500">
+              <p className="text-sm text-faint">
                 Ask me to filter or sort your watchlist.
               </p>
             ) : (
@@ -86,10 +86,10 @@ export default function WatchlistChat({ onResults }) {
                   key={index}
                   className={`rounded-xl px-3 py-2 text-sm ${
                     entry.role === 'user'
-                      ? 'ml-8 bg-blue-600 text-white'
+                      ? 'ml-8 bg-primary text-on-primary'
                       : entry.isError
-                      ? 'mr-8 bg-red-900/70 text-red-100'
-                      : 'mr-8 bg-slate-800 text-slate-100'
+                      ? 'mr-8 bg-destructive/20 text-foreground'
+                      : 'mr-8 bg-surface-2 text-foreground'
                   }`}
                 >
                   {entry.text}
@@ -104,13 +104,13 @@ export default function WatchlistChat({ onResults }) {
               onChange={(e) => setMessage(e.target.value)}
               disabled={isLoading}
               placeholder="Filter your watchlist..."
-              className="min-w-0 flex-1 rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white outline-none placeholder:text-slate-500 focus:border-blue-500"
+              className="min-w-0 flex-1 rounded-xl border border-border bg-background px-3 py-2 text-sm text-foreground outline-none placeholder:text-faint focus:border-primary/60"
             />
 
             <button
               type="submit"
               disabled={isLoading || message.trim() === ''}
-              className="rounded-xl bg-blue-600 px-3 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-50"
+              className="rounded-xl bg-primary px-3 py-2 text-sm font-semibold text-on-primary transition hover:bg-primary-strong disabled:cursor-not-allowed disabled:opacity-50"
             >
               {isLoading ? '...' : 'Send'}
             </button>
@@ -121,10 +121,18 @@ export default function WatchlistChat({ onResults }) {
       <button
         type="button"
         onClick={() => setIsOpen((prev) => !prev)}
-        className="flex h-14 w-14 items-center justify-center rounded-full bg-blue-600 text-2xl text-white shadow-xl transition hover:bg-blue-500"
+        className="flex h-14 w-14 items-center justify-center rounded-full bg-primary text-on-primary shadow-xl shadow-black/40 transition hover:bg-primary-strong"
         aria-label={isOpen ? 'Close watchlist assistant' : 'Open watchlist assistant'}
       >
-        {isOpen ? '×' : '💬'}
+        {isOpen ? (
+          <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="m6 6 12 12M18 6 6 18" strokeLinecap="round" />
+          </svg>
+        ) : (
+          <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+            <path d="M4 5h16a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H9l-4 4v-4H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1Z" strokeLinejoin="round" />
+          </svg>
+        )}
       </button>
     </div>
   );
