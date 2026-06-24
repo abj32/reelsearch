@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { combinedSearch } from '../services/omdb.service.js';
+import { normalizeSearchResult } from '../utils/normalizeSearchResult.js';
 
 const router = Router();
 
@@ -15,7 +16,7 @@ router.get('/', async (req, res) => {
 
   try {
     const movies = await combinedSearch(q.trim());
-    return res.json(movies);
+    return res.json(movies.map(normalizeSearchResult));
   } catch (err) {
     console.error("Search error:", err);
     
