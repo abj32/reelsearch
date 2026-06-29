@@ -16,7 +16,10 @@ router.get('/', requireAuth, async (req, res) => {
     try {
       filters = normalizeWatchlistFilters(req.query);
     } catch (err) {
-      return res.status(400).json({ message: err.message });
+      return res.status(400).json({
+        code: "INVALID_WATCHLIST_FILTERS",
+        message: err.message,
+      });
     }
 
     // Call watchlist service to build Prisma *where* and *orderBy*
@@ -31,10 +34,14 @@ router.get('/', requireAuth, async (req, res) => {
       orderBy,
     });
 
-    res.json(items.map(serializeWatchlistItem));
+    return res.json(items.map(serializeWatchlistItem));
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Failed to load watchlist' });
+    console.error("Load watchlist error:", err);
+
+    return res.status(500).json({
+      code: "WATCHLIST_LOAD_FAILED",
+      message: "Failed to load watchlist.",
+    });
   }
 });
 
@@ -83,19 +90,30 @@ router.post('/', requireAuth, async (req, res) => {
   try {
     const { imdbId } = req.body ?? {};
 
-    if (!imdbId) {
-      return res.status(400).json({ message: 'imdbId is required' });
+    if (typeof imdbId !== "string" || imdbId.trim().length === 0) {
+      return res.status(400).json({
+        code: "INVALID_IMDB_ID",
+        message: "imdbId is required.",
+      });
     }
 
-    // Check if item already exists for this user
+    const normalizedImdbId = imdbId.trim();
+
+    // Check if item already exists for this user.
     const existing = await prisma.watchlistItem.findUnique({
-      where: { userId_imdbId: { userId: req.userId, imdbId } },
+      where: {
+        userId_imdbId: {
+          userId: req.userId,
+          imdbId: normalizedImdbId,
+        },
+      },
     });
 
     if (existing) {
-      return res
-        .status(409)
-        .json({ message: 'Item is already in your watchlist' });
+      return res.status(409).json({
+        code: "WATCHLIST_ITEM_EXISTS",
+        message: "Item is already in your watchlist.",
+      });
     }
 
     // Fetch full movie details from OMDb
@@ -168,10 +186,14 @@ router.post('/', requireAuth, async (req, res) => {
     // Add to watchlist
     const item = await prisma.watchlistItem.create({ data });
 
-    res.status(201).json(serializeWatchlistItem(item));
+    return res.status(201).json(serializeWatchlistItem(item));
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Failed to add to watchlist' });
+    console.error("Add watchlist item error:", err);
+
+    return res.status(500).json({
+      code: "WATCHLIST_ADD_FAILED",
+      message: "Failed to add to watchlist.",
+    });
   }
 });
 
@@ -185,14 +207,21 @@ router.delete('/:imdbId', requireAuth, async (req, res) => {
       where: { userId_imdbId: { userId: req.userId, imdbId } },
     });
 
-    res.json({ ok: true });
+    return res.json({ ok: true });
   } catch (err) {
-    if (err.code === 'P2025') {
-      return res.status(404).json({ message: 'Item not found in watchlist' });
+    if (err.code === "P2025") {
+      return res.status(404).json({
+        code: "WATCHLIST_ITEM_NOT_FOUND",
+        message: "Item not found in watchlist.",
+      });
     }
 
-    console.error(err);
-    res.status(500).json({ message: 'Failed to delete watchlist item' });
+    console.error("Delete watchlist item error:", err);
+
+    return res.status(500).json({
+      code: "WATCHLIST_DELETE_FAILED",
+      message: "Failed to delete watchlist item.",
+    });
   }
 });
 

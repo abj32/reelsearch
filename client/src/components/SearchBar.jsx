@@ -28,7 +28,7 @@ export default function SearchBar({ setResults, setSearchMode }) {
     } catch (err) {
       console.error("Search failed", err);
 
-      if (err.body?.code === "TOO_MANY_RESULTS") {
+      if (err.code === "TOO_MANY_RESULTS") {
         setSearchMessage("Please refine your search.");
         return;
       }

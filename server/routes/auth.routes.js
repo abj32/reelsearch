@@ -22,44 +22,80 @@ function sign(userId) {
 router.post('/register', async (req, res) => {
   try {
     const { email, password } = req.body ?? {};
-    if (!email || !password) return res.status(400).json({ message: 'email and password are required' });
+    if (!email || !password) {
+      return res.status(400).json({
+        code: "AUTH_REGISTER_FIELDS_REQUIRED",
+        message: "Email and password are required.",
+      });
+    }
 
     const exists = await prisma.user.findUnique({ where: { email } });
-    if (exists) return res.status(409).json({ message: 'Email already registered' });
+    if (exists) {
+      return res.status(409).json({
+        code: "AUTH_EMAIL_ALREADY_REGISTERED",
+        message: "Email already registered.",
+      });
+    }
 
     const hash = await bcrypt.hash(password, 11);
     const user = await prisma.user.create({ data: { email, passwordHash: hash } });
 
     res.cookie('sid', sign(user.id), COOKIE_OPTS);
-    res.status(201).json({ id: user.id, email: user.email, createdAt: user.createdAt });
+    
+    return res.status(201).json({ id: user.id, email: user.email, createdAt: user.createdAt });
   } catch (e) {
-    console.error(e);
-    res.status(500).json({ message: 'Server error' });
+    console.error("Register error:", err);
+
+    return res.status(500).json({
+      code: "AUTH_REGISTER_FAILED",
+      message: "Failed to register account.",
+    });
   }
 });
 
 router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body ?? {};
-    if (!email || !password) return res.status(400).json({ message: 'email and password are required' });
+    if (!email || !password) {
+      return res.status(400).json({
+        code: "AUTH_LOGIN_FIELDS_REQUIRED",
+        message: "Email and password are required.",
+      });
+    }
 
     const user = await prisma.user.findUnique({ where: { email } });
-    if (!user) return res.status(401).json({ message: 'Invalid email' });
+    if (!user) {
+      return res.status(401).json({
+        code: "AUTH_INVALID_CREDENTIALS",
+        message: "Invalid email or password.",
+      });
+    }
 
     const ok = await bcrypt.compare(password, user.passwordHash);
-    if (!ok) return res.status(401).json({ message: 'Invalid password' });
+    if (!ok) {
+      return res.status(401).json({
+        code: "AUTH_INVALID_CREDENTIALS",
+        message: "Invalid email or password.",
+      });
+    }
 
     res.cookie('sid', sign(user.id), COOKIE_OPTS);
-    res.json({ id: user.id, email: user.email, createdAt: user.createdAt });
+
+    return res.json({ id: user.id, email: user.email, createdAt: user.createdAt });
   } catch (e) {
-    console.error(e);
-    res.status(500).json({ message: 'Server error' });
+    console.error("Login error:", err);
+
+    return res.status(500).json({
+      code: "AUTH_LOGIN_FAILED",
+      message: "Failed to log in.",
+    });
   }
 });
 
 router.post('/logout', (req, res) => {
   res.clearCookie('sid', COOKIE_OPTS);
-  res.json({ ok: true });
+  
+  return res.json({ ok: true });
 });
 
 router.get('/profile', requireAuth, async (req, res) => {
@@ -70,12 +106,20 @@ router.get('/profile', requireAuth, async (req, res) => {
     });
 
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(404).json({
+        code: "AUTH_USER_NOT_FOUND",
+        message: "User not found.",
+      });
     }
-    res.json(user);
+
+    return res.json(user);
   } catch (e) {
-    console.error(e);
-    res.status(500).json({ message: 'Server error' });
+    console.error("Profile error:", err);
+
+    return res.status(500).json({
+      code: "AUTH_PROFILE_FAILED",
+      message: "Failed to load profile.",
+    });
   }
 });
 

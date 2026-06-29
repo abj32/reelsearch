@@ -9,8 +9,8 @@ router.get('/', async (req, res) => {
 
   if (typeof q !== "string" || q.trim().length === 0) {
     return res.status(400).json({
-      message: "Query parameter 'q' is required",
       code: "INVALID_QUERY",
+      message: "Query parameter 'q' is required",
     });
   }
 
@@ -18,18 +18,18 @@ router.get('/', async (req, res) => {
     const movies = await combinedSearch(q.trim());
     return res.json(movies.map(normalizeSearchResult));
   } catch (err) {
-    console.error("Search error:", err);
-    
     if (err.code === "TOO_MANY_RESULTS") {
       return res.status(400).json({
-        message: "Too many results",
         code: "TOO_MANY_RESULTS",
+        message: "Too many results",
       });
     }
 
+    console.error("Search error:", err);
+
     return res.status(500).json({
-      message: "Failed to fetch movies",
       code: "SEARCH_REQUEST_FAILED",
+      message: "Failed to fetch movies",
     });
   }
 });

@@ -54,8 +54,13 @@ export async function request(path, options = {}) {
     }
 
     if (!res.ok) {
-      const error = new Error(data?.message || "Request failed");
+      const message =
+        data?.message ||
+        `Request failed with status ${res.status}`;
+
+      const error = new Error(message);
       error.status = res.status;
+      error.code = data?.code;
       error.body = data;
       throw error;
     }

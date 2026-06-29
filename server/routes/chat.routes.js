@@ -11,11 +11,14 @@ router.post('/watchlist', requireAuth, async (req, res) => {
   try {
     const { message } = req.body ?? {};
 
-    if (typeof message !== 'string' || message.trim() === '') {
-      return res.status(400).json({ message: 'message is required' });
+    if (typeof message !== 'string' || message.trim().length === 0) {
+      return res.status(400).json({
+        code: "CHAT_MESSAGE_REQUIRED",
+        message: "Message is required.",
+      });
     }
 
-    // Send chat to OpenAI service
+    // Parse the user's natural-language request into a structured watchlist action.
     const action = await parseWatchlistMessage(message.trim());
 
     let rawFilters = {};
@@ -38,7 +41,12 @@ router.post('/watchlist', requireAuth, async (req, res) => {
         order: action.order,
       };
     } else {
-      return res.status(400).json({ message: 'Unsupported chat intent' });
+      console.error("Invalid watchlist chat action:", action);
+
+      return res.status(500).json({
+        code: "CHAT_INVALID_ACTION",
+        message: "Failed to process watchlist chat.",
+      });
     }
 
     // Call watchlist service to normalize optional filters
@@ -46,7 +54,10 @@ router.post('/watchlist', requireAuth, async (req, res) => {
     try {
       filters = normalizeWatchlistFilters(rawFilters);
     } catch (err) {
-      return res.status(400).json({ message: err.message });
+      return res.status(400).json({
+        code: "CHAT_INVALID_WATCHLIST_FILTERS",
+        message: err.message,
+      });
     }
 
     // Call watchlist service to build Prisma *where* and *orderBy*
@@ -66,8 +77,12 @@ router.post('/watchlist', requireAuth, async (req, res) => {
       items: items.map(serializeWatchlistItem),
     });
   } catch (err) {
-    console.error(err);
-    return res.status(500).json({ message: 'Failed to process watchlist chat' });
+    console.error("Watchlist chat error:", err);
+
+    return res.status(500).json({
+      code: "WATCHLIST_CHAT_FAILED",
+      message: "Failed to process watchlist chat.",
+    });
   }
 });
 
