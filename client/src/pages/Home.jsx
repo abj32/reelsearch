@@ -60,7 +60,7 @@ export default function Home({ user, results, searchMode, watchlist, setWatchlis
           Films · Series · Games
         </span>
         <h1 className="font-serif text-4xl leading-tight text-foreground text-balance sm:text-5xl md:text-6xl">
-          Every story worth watching, in one place.
+          Find what’s worth pressing play.
         </h1>
         <p className="mt-5 max-w-xl text-pretty text-base leading-relaxed text-muted sm:text-lg">
           Search across movies, TV shows, and video games — then build a personal
