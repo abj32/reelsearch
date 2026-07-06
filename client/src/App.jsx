@@ -128,7 +128,8 @@ function AppShell() {
           {/* Watchlist icon with count badge — visible at all widths */}
           <NavLink
             to="/watchlist"
-            aria-label="Watchlist"
+            aria-label="View watchlist"
+            title="Watchlist"
             className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-border bg-surface text-foreground transition hover:border-border-strong hover:bg-surface-2"
           >
             <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
@@ -176,7 +177,6 @@ function AppShell() {
                     </div>
                     <div className="my-1 h-px bg-border" />
                     <NavLink to="/profile" onClick={() => setMenuOpen(false)} className="block rounded-lg px-3 py-2 text-sm text-foreground transition hover:bg-surface-2">Profile</NavLink>
-                    <NavLink to="/watchlist" onClick={() => setMenuOpen(false)} className="block rounded-lg px-3 py-2 text-sm text-foreground transition hover:bg-surface-2">Watchlist</NavLink>
                     <button onClick={handleLogout} className="block w-full rounded-lg px-3 py-2 text-left text-sm text-destructive transition hover:bg-surface-2">Log out</button>
                   </>
                 ) : (
