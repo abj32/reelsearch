@@ -1,6 +1,32 @@
 import { useState } from 'react';
 import { sendWatchlistChatMessage } from '../services/chat';
 
+function getWatchlistChatErrorMessage(err) {
+  switch (err.code) {
+    case 'CHAT_MESSAGE_REQUIRED':
+      return 'Enter a message first.';
+
+    case 'CHAT_INVALID_ACTION':
+    case 'CHAT_UNSUPPORTED_INTENT':
+      return "I couldn't understand that request. Try asking me to filter or sort your watchlist.";
+
+    case 'CHAT_INVALID_WATCHLIST_FILTERS':
+      return 'That filter could not be applied. Try a simpler request.';
+
+    case 'AUTH_REQUIRED':
+      return 'Please sign in to use the watchlist assistant.';
+
+    case 'AUTH_INVALID':
+      return 'Your session expired. Please sign in again.';
+
+    case 'WATCHLIST_CHAT_FAILED':
+      return "I couldn't process that request. Please try again.";
+
+    default:
+      return err.message || 'Failed to process request.';
+  }
+}
+
 export default function WatchlistChat({ onResults }) {
   const [isOpen, setIsOpen] = useState(false);
   const [message, setMessage] = useState('');
@@ -11,7 +37,10 @@ export default function WatchlistChat({ onResults }) {
     e.preventDefault();
 
     const trimmedMessage = message.trim();
-    if (!trimmedMessage || isLoading) return;
+
+    if (trimmedMessage.length === 0 || isLoading) {
+      return;
+    }
 
     setMessage('');
     setIsLoading(true);
@@ -38,13 +67,12 @@ export default function WatchlistChat({ onResults }) {
         ...prev,
         {
           role: 'assistant',
-          text: err.message || 'Failed to process request',
+          text: getWatchlistChatErrorMessage(err),
           isError: true,
         },
       ]);
     } finally {
       setIsLoading(false);
-      console.log(chatLog);
     }
   }
 

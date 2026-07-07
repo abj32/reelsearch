@@ -18,20 +18,57 @@ function ProtectedRoute({ user, checkingAuth, children }) {
   if (checkingAuth) return null;
 
   // If there is no user after the check, redirect to /login
-  if (!user) return <Navigate to="/login" replace/>;
+  if (!user) return <Navigate to="/login" replace />;
 
   // If user is authenticated, render the protected content
   return children;
 }
 
+function getProfileErrorMessage(err) {
+  switch (err.code) {
+    case "AUTH_REQUIRED":
+      return "";
+
+    case "AUTH_INVALID":
+      return "Your session expired. Please log in again.";
+
+    case "AUTH_USER_NOT_FOUND":
+      return "Your session could not be restored. Please log in again.";
+
+    case "AUTH_PROFILE_FAILED":
+      return "Could not verify your session. Please try again.";
+
+    default:
+      if (err.status === 401) return "";
+      return "Could not verify your session. Please try again.";
+  }
+}
+
+function getWatchlistErrorMessage(err) {
+  switch (err.code) {
+    case "AUTH_REQUIRED":
+      return "Please log in to view your watchlist.";
+
+    case "AUTH_INVALID":
+      return "Your session expired. Please log in again.";
+
+    case "WATCHLIST_LOAD_FAILED":
+      return "Failed to load your watchlist. Please try again.";
+
+    default:
+      return err.message || "Failed to load your watchlist. Please try again.";
+  }
+}
+
 function AppShell() {
-  const [results, setResults] = useState([]);   // stores results of search
+  const [results, setResults] = useState([]); // stores results of search
   const [searchMode, setSearchMode] = useState('idle'); // 'idle' | 'searched'
-  const [user, setUser] = useState(null);        // stores logged-in user (or null)
+  const [user, setUser] = useState(null); // stores logged-in user (or null)
   const [checkingAuth, setCheckingAuth] = useState(true); // while we call /auth/profile on load
-  const [menuOpen, setMenuOpen] = useState(false);        // dropdown state
-  const [watchlist, setWatchlist] = useState([]);   // stores watchlist
-  const [isApiLoading, setIsApiLoading] = useState(false);  // global API loading state
+  const [menuOpen, setMenuOpen] = useState(false); // dropdown state
+  const [watchlist, setWatchlist] = useState([]); // stores watchlist
+  const [isApiLoading, setIsApiLoading] = useState(false); // global API loading state
+  const [appMessage, setAppMessage] = useState("");
 
   const menuRef = useRef(null);
   const navigate = useNavigate();
@@ -40,11 +77,32 @@ function AppShell() {
   useEffect(() => {
     (async () => {
       try {
-        const profile = await getProfile();  // GET /api/auth/profile
+        const profile = await getProfile(); // GET /api/auth/profile
         setUser(profile);
+        setAppMessage("");
       } catch (err) {
-        if (err.status !== 401) { // If error other than "user not logged in"
-          console.error("Failed to load profile", err);
+        const message = getProfileErrorMessage(err);
+
+        if (err.code === "AUTH_REQUIRED") {
+          setUser(null);
+          return;
+        }
+
+        if (err.code === "AUTH_INVALID" || err.code === "AUTH_USER_NOT_FOUND") {
+          setUser(null);
+          setWatchlist([]);
+
+          if (message) {
+            setAppMessage(message);
+          }
+
+          return;
+        }
+
+        console.error("Failed to load profile:", err);
+
+        if (message) {
+          setAppMessage(message);
         }
       } finally {
         setCheckingAuth(false);
@@ -64,7 +122,16 @@ function AppShell() {
         const items = await fetchWatchlist();
         setWatchlist(items);
       } catch (err) {
-        console.error("Failed to load watchlist", err);
+        if (err.code === "AUTH_REQUIRED" || err.code === "AUTH_INVALID") {
+          setUser(null);
+          setWatchlist([]);
+          setMenuOpen(false);
+          setAppMessage(getWatchlistErrorMessage(err));
+          return;
+        }
+
+        console.error("Failed to load watchlist:", err);
+        setAppMessage(getWatchlistErrorMessage(err));
       }
     })();
   }, [user]);
@@ -78,7 +145,7 @@ function AppShell() {
     document.documentElement.style.cursor = isApiLoading ? "wait" : ""; // toggle cursor when loading
 
     return () => {
-      document.documentElement.style.cursor = ''; // reset on unmount
+      document.documentElement.style.cursor = ""; // reset on unmount
     };
   }, [isApiLoading]);
 
@@ -86,6 +153,7 @@ function AppShell() {
   function handleHome() {
     setResults([]);
     setSearchMode('idle');
+    setAppMessage("");
   }
 
   // Deactivate user, watchlist and menu on logout
@@ -93,11 +161,12 @@ function AppShell() {
     try {
       await logout();
     } catch (err) {
-      console.error("Logout failed", err);
+      console.error("Logout failed:", err);
     } finally {
       setUser(null);
       setWatchlist([]);
       setMenuOpen(false);
+      setAppMessage("");
       navigate("/");
     }
   }
@@ -106,7 +175,6 @@ function AppShell() {
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      
       {/* Header */}
       <header className="sticky top-0 z-40 border-b border-border bg-background/85 backdrop-blur-md">
         <div className="relative mx-auto flex max-w-7xl items-center gap-3 px-4 py-3 sm:gap-5 sm:px-6">
@@ -259,24 +327,62 @@ function AppShell() {
 
       {/* Main area for displaying search results and user watchlist */}
       <main className="flex-1 px-4 py-6 sm:px-6 sm:py-8">
+        {appMessage && (
+          <div className="mx-auto mb-5 flex max-w-7xl items-start justify-between gap-3 rounded-lg border border-destructive/40 bg-destructive/15 px-3 py-2 text-sm text-foreground">
+            <span>{appMessage}</span>
+
+            <button
+              type="button"
+              onClick={() => setAppMessage("")}
+              className="shrink-0 text-faint transition hover:text-foreground"
+              aria-label="Dismiss message"
+            >
+              ×
+            </button>
+          </div>
+        )}
+
         <Routes>
           {/* Home page */}
-          <Route path="/" element={<Home user={user} results={results} searchMode={searchMode} watchlist={watchlist} setWatchlist={setWatchlist} />} />
+          <Route
+            path="/"
+            element={
+              <Home
+                user={user}
+                results={results}
+                searchMode={searchMode}
+                watchlist={watchlist}
+                setWatchlist={setWatchlist}
+              />
+            }
+          />
 
           {/* Register route */}
-          <Route path="/register" element={<Register onAuth={setUser}/>}/>
+          <Route path="/register" element={<Register onAuth={setUser} />} />
+
           {/* Login page */}
-          <Route path="/login" element={<Login onAuth={setUser}/>}/>
+          <Route path="/login" element={<Login onAuth={setUser} />} />
 
           {/* Protected profile page */}
-          <Route path="/profile" element={<ProtectedRoute user={user} checkingAuth={checkingAuth}>
-                                            <Profile user={user} watchlist={watchlist} onLogout={handleLogout} />
-                                          </ProtectedRoute>}/>
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute user={user} checkingAuth={checkingAuth}>
+                <Profile user={user} watchlist={watchlist} onLogout={handleLogout} />
+              </ProtectedRoute>
+            }
+          />
+
           {/* Protected watchlist page */}
-          <Route path="/watchlist" element={<ProtectedRoute user={user} checkingAuth={checkingAuth}>
-                                              <Watchlist watchlist={watchlist} setWatchlist={setWatchlist}/>
-                                              <WatchlistChat onResults={setWatchlist} />
-                                            </ProtectedRoute>} />
+          <Route
+            path="/watchlist"
+            element={
+              <ProtectedRoute user={user} checkingAuth={checkingAuth}>
+                <Watchlist watchlist={watchlist} setWatchlist={setWatchlist} />
+                <WatchlistChat onResults={setWatchlist} />
+              </ProtectedRoute>
+            }
+          />
         </Routes>
       </main>
     </div>

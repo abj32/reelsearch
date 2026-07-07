@@ -2,38 +2,49 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { searchMovies } from "../services/search";
 
+function getSearchErrorMessage(err) {
+  switch (err.code) {
+    case "INVALID_QUERY":
+      return "Please enter a search term.";
+
+    case "TOO_MANY_RESULTS":
+      return "Please refine your search.";
+
+    case "SEARCH_REQUEST_FAILED":
+      return "Search failed. Please try again.";
+
+    default:
+      return err.message || "Search failed. Please try again.";
+  }
+}
+
 export default function SearchBar({ setResults, setSearchMode }) {
   const [query, setQuery] = useState("");
   const [searchMessage, setSearchMessage] = useState("");
   const navigate = useNavigate();
 
   async function handleSubmit(e) {
-    e.preventDefault(); // prevents page reload
-    
+    e.preventDefault();
+
     const trimmed = query.trim();
 
-    if (trimmed.length === 0) { // Do nothing on blank search
+    if (trimmed.length === 0) {
       setSearchMessage("Please enter a search term.");
       return;
     }
 
     setSearchMessage("");
-    setResults([]); // Clear results
+    setResults([]);
 
     try {
       const movies = await searchMovies(trimmed);
+
       setResults(movies);
-      setSearchMode('searched');
+      setSearchMode("searched");
       navigate("/");
     } catch (err) {
-      console.error("Search failed", err);
-
-      if (err.code === "TOO_MANY_RESULTS") {
-        setSearchMessage("Please refine your search.");
-        return;
-      }
-
-      setSearchMessage("Search failed. Please try again.");
+      console.error("Search failed:", err);
+      setSearchMessage(getSearchErrorMessage(err));
     }
   }
 
@@ -52,6 +63,7 @@ export default function SearchBar({ setResults, setSearchMode }) {
             <circle cx="9" cy="9" r="6" />
             <path d="m17 17-3.2-3.2" strokeLinecap="round" />
           </svg>
+
           <input
             type="text"
             placeholder="Search films, series, games..."

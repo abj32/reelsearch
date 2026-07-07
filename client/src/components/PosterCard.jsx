@@ -2,6 +2,7 @@ import { getPoster, getStarRating, getTypeMeta } from "../utils/mediaHelpers";
 
 function StarBadge({ rating }) {
   if (rating == null) return null;
+
   return (
     <div className="flex items-center gap-1 rounded-full bg-black/70 px-2 py-1 text-xs font-semibold text-primary backdrop-blur-sm ring-1 ring-white/10">
       <svg className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -17,6 +18,7 @@ export default function PosterCard({ item, mode, inWatchlist, onAdd, onRemove, o
   const rating = getStarRating(item);
   const type = getTypeMeta(item.Type);
   const rated = item.Rated && item.Rated !== "N/A" ? item.Rated : "NR";
+  const shouldRemove = mode === "remove" || (mode === "add" && inWatchlist);
 
   return (
     <li className="group animate-fade-up">
@@ -62,32 +64,28 @@ export default function PosterCard({ item, mode, inWatchlist, onAdd, onRemove, o
           type="button"
           onClick={(e) => {
             e.stopPropagation();
-            if (mode === "remove") onRemove(item);
-            else if (!inWatchlist) onAdd(item);
+
+            if (shouldRemove) {
+              onRemove(item);
+              return;
+            }
+
+            onAdd(item);
           }}
-          disabled={mode === "add" && inWatchlist}
           aria-label={
-            mode === "remove"
+            shouldRemove
               ? `Remove ${item.Title} from watchlist`
-              : inWatchlist
-                ? `${item.Title} is in your watchlist`
-                : `Add ${item.Title} to watchlist`
+              : `Add ${item.Title} to watchlist`
           }
           className={`absolute right-2 top-2 flex h-9 w-9 items-center justify-center rounded-full text-lg shadow-lg ring-1 transition ${
-            mode === "remove"
+            shouldRemove
               ? "bg-black/70 text-destructive ring-white/10 backdrop-blur-sm hover:bg-destructive hover:text-white"
-              : inWatchlist
-                ? "cursor-default bg-primary text-on-primary ring-transparent"
-                : "bg-black/70 text-foreground ring-white/10 backdrop-blur-sm hover:bg-primary hover:text-on-primary"
+              : "bg-black/70 text-foreground ring-white/10 backdrop-blur-sm hover:bg-primary hover:text-on-primary"
           }`}
         >
-          {mode === "remove" ? (
+          {shouldRemove ? (
             <svg className="h-4 w-4" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M4 6h12M8.5 9v5M11.5 9v5M5.5 6l.7 9.2a1 1 0 0 0 1 .8h5.6a1 1 0 0 0 1-.8L15.5 6M7.5 6V4.2a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1V6" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          ) : inWatchlist ? (
-            <svg className="h-4 w-4" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2.5">
-              <path d="m4 10.5 3.5 3.5L16 5.5" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           ) : (
             <svg className="h-5 w-5" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2">
@@ -102,6 +100,7 @@ export default function PosterCard({ item, mode, inWatchlist, onAdd, onRemove, o
         <h3 className="truncate font-medium leading-snug text-foreground" title={item.Title}>
           {item.Title}
         </h3>
+
         <div className="mt-1.5 flex flex-wrap items-center gap-1.5 text-xs">
           <span className="text-muted">{item.Year}</span>
           <span className="h-1 w-1 rounded-full bg-faint" aria-hidden="true" />

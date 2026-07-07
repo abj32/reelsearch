@@ -2,6 +2,29 @@ import { useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { login, register } from "../services/auth";
 
+function getAuthErrorMessage(err, isLogin) {
+  switch (err.code) {
+    case "AUTH_LOGIN_FIELDS_REQUIRED":
+    case "AUTH_REGISTER_FIELDS_REQUIRED":
+      return "Email and password are required.";
+
+    case "AUTH_INVALID_CREDENTIALS":
+      return "Invalid email or password.";
+
+    case "AUTH_EMAIL_ALREADY_REGISTERED":
+      return "An account with this email already exists.";
+
+    case "AUTH_LOGIN_FAILED":
+      return "Login failed. Please try again.";
+
+    case "AUTH_REGISTER_FAILED":
+      return "Registration failed. Please try again.";
+
+    default:
+      return err.message || (isLogin ? "Login failed." : "Registration failed.");
+  }
+}
+
 export default function AuthForm({ mode, onAuth }) {
   const isLogin = mode === "login";
   const [email, setEmail] = useState("");
@@ -12,16 +35,19 @@ export default function AuthForm({ mode, onAuth }) {
 
   async function handleSubmit(e) {
     e.preventDefault();
+
     setError("");
     setSubmitting(true);
+
     try {
       const user = isLogin
         ? await login(email, password)
         : await register(email, password);
+
       onAuth(user);
       navigate("/");
     } catch (err) {
-      setError(err.message || (isLogin ? "Login failed" : "Registration failed"));
+      setError(getAuthErrorMessage(err, isLogin));
     } finally {
       setSubmitting(false);
     }
