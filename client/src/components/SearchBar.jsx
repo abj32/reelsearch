@@ -58,7 +58,7 @@ export default function SearchBar({ setResults, setSearchMode }) {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             aria-label="Search"
-            className="min-w-0 flex-1 bg-transparent text-sm text-foreground placeholder:text-faint focus:outline-none sm:text-base"
+            className="min-w-0 flex-1 bg-transparent text-base text-foreground placeholder:text-faint focus:outline-none"
           />
         </div>
 
