@@ -55,7 +55,7 @@ export default function Home({ user, results, searchMode, watchlist, setWatchlis
   // Idle state — hero shown before any search
   return (
     <>
-      <section className="mx-auto flex min-h-[60vh] max-w-3xl flex-col items-center justify-center px-2 text-center">
+      <section className="mx-auto flex min-h-[60vh] w-full max-w-3xl flex-col items-center justify-center text-center">
         <span className="mb-6 rounded-full border border-border bg-surface px-4 py-1.5 text-xs font-medium uppercase tracking-[0.2em] text-primary">
           Films · Series · Games
         </span>

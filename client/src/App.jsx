@@ -109,84 +109,150 @@ function AppShell() {
       
       {/* Header */}
       <header className="sticky top-0 z-40 border-b border-border bg-background/85 backdrop-blur-md">
-        <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3 sm:gap-5 sm:px-6">
+        <div className="relative mx-auto flex max-w-7xl items-center gap-3 px-4 py-3 sm:gap-5 sm:px-6">
           {/* Logo */}
           <NavLink
             to="/"
             onClick={handleHome}
             className="flex shrink-0 items-center gap-2 font-serif text-xl font-semibold tracking-tight text-foreground sm:text-2xl"
           >
-            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary font-serif italic text-on-primary">R</span>
-            <span className="hidden sm:inline">ReelSearch</span>
+            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary font-serif italic text-on-primary">
+              R
+            </span>
+
+            {/* Hide full logo text until lg to avoid colliding with centered search */}
+            <span className="hidden lg:inline">ReelSearch</span>
           </NavLink>
 
-          {/* Search bar */}
-          <div className="mx-auto w-full max-w-md flex-1">
+          {/* Extra-small search bar: normal flex flow so it cannot overlap icons */}
+          <div className="min-w-0 flex-1 sm:hidden">
             <SearchBar setResults={setResults} setSearchMode={setSearchMode} />
           </div>
 
-          {/* Watchlist icon with count badge — visible at all widths */}
-          <NavLink
-            to="/watchlist"
-            aria-label="View watchlist"
-            title="Watchlist"
-            className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-border bg-surface text-foreground transition hover:border-border-strong hover:bg-surface-2"
-          >
-            <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-              <path d="M6 4h12a1 1 0 0 1 1 1v15l-7-4-7 4V5a1 1 0 0 1 1-1Z" strokeLinejoin="round" />
-            </svg>
-            {watchlist.length > 0 && (
-              <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1 text-[11px] font-bold text-on-primary">
-                {watchlist.length}
-              </span>
-            )}
-          </NavLink>
+          {/* Small / medium centered search bar */}
+          <div className="pointer-events-none absolute left-1/2 hidden w-[min(26rem,calc(100%_-_16rem))] -translate-x-1/2 sm:block lg:hidden">
+            <div className="pointer-events-auto">
+              <SearchBar setResults={setResults} setSearchMode={setSearchMode} />
+            </div>
+          </div>
 
-          {/* Profile avatar + dropdown */}
-          <div className="relative shrink-0" ref={menuRef}>
-            <button
-              type="button"
-              disabled={isApiLoading}
-              onClick={() => setMenuOpen((p) => !p)}
-              aria-label="Account menu"
-              aria-haspopup="menu"
-              aria-expanded={menuOpen}
-              className={`flex h-10 w-10 items-center justify-center rounded-full border text-sm font-semibold transition ${
-                user
-                  ? "border-primary/50 bg-primary/15 text-primary"
-                  : "border-border bg-surface text-muted"
-              } ${isApiLoading ? "opacity-50" : "hover:border-border-strong"}`}
+          {/* Desktop centered search bar */}
+          <div className="pointer-events-none absolute left-1/2 hidden w-full max-w-md -translate-x-1/2 lg:block xl:max-w-lg">
+            <div className="pointer-events-auto">
+              <SearchBar setResults={setResults} setSearchMode={setSearchMode} />
+            </div>
+          </div>
+
+          {/* Right-side actions */}
+          <div className="ml-auto flex shrink-0 items-center gap-3 sm:gap-5">
+            {/* Watchlist icon with count badge — visible at all widths */}
+            <NavLink
+              to="/watchlist"
+              aria-label="View watchlist"
+              title="Watchlist"
+              className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-border bg-surface text-foreground transition hover:border-border-strong hover:bg-surface-2"
             >
-              {user ? (
-                initial
-              ) : (
-                <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-                  <circle cx="12" cy="8" r="3.5" />
-                  <path d="M5 19a7 7 0 0 1 14 0" strokeLinecap="round" />
-                </svg>
-              )}
-            </button>
+              <svg
+                className="h-5 w-5"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.8"
+              >
+                <path
+                  d="M6 4h12a1 1 0 0 1 1 1v15l-7-4-7 4V5a1 1 0 0 1 1-1Z"
+                  strokeLinejoin="round"
+                />
+              </svg>
 
-            {menuOpen && !checkingAuth && (
-              <div className="absolute right-0 z-50 mt-2 w-48 overflow-hidden rounded-xl border border-border bg-elevated p-1 shadow-2xl shadow-black/50 animate-fade-up">
+              {watchlist.length > 0 && (
+                <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1 text-[11px] font-bold text-on-primary">
+                  {watchlist.length}
+                </span>
+              )}
+            </NavLink>
+
+            {/* Profile avatar + dropdown */}
+            <div className="relative shrink-0" ref={menuRef}>
+              <button
+                type="button"
+                disabled={isApiLoading}
+                onClick={() => setMenuOpen((p) => !p)}
+                aria-label="Account menu"
+                aria-haspopup="menu"
+                aria-expanded={menuOpen}
+                className={`flex h-10 w-10 items-center justify-center rounded-full border text-sm font-semibold transition ${
+                  user
+                    ? "border-primary/50 bg-primary/15 text-primary"
+                    : "border-border bg-surface text-muted"
+                } ${isApiLoading ? "opacity-50" : "hover:border-border-strong"}`}
+              >
                 {user ? (
-                  <>
-                    <div className="px-3 py-2">
-                      <p className="text-xs text-faint">Signed in as</p>
-                      <p className="truncate text-sm font-medium text-foreground">{user.email}</p>
-                    </div>
-                    <div className="my-1 h-px bg-border" />
-                    <NavLink to="/profile" onClick={() => setMenuOpen(false)} className="block rounded-lg px-3 py-2 text-sm text-foreground transition hover:bg-surface-2">Profile</NavLink>
-                    <button onClick={handleLogout} className="block w-full rounded-lg px-3 py-2 text-left text-sm text-destructive transition hover:bg-surface-2">Log out</button>
-                  </>
+                  initial
                 ) : (
-                  <>
-                    <NavLink to="/login" onClick={() => setMenuOpen(false)} className="block rounded-lg px-3 py-2 text-sm text-foreground transition hover:bg-surface-2">Log in</NavLink>
-                    <NavLink to="/register" onClick={() => setMenuOpen(false)} className="block rounded-lg px-3 py-2 text-sm text-foreground transition hover:bg-surface-2">Register</NavLink>
-                  </>
+                  <svg
+                    className="h-5 w-5"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                  >
+                    <circle cx="12" cy="8" r="3.5" />
+                    <path d="M5 19a7 7 0 0 1 14 0" strokeLinecap="round" />
+                  </svg>
                 )}
-              </div>
-            )}
+              </button>
+
+              {menuOpen && !checkingAuth && (
+                <div className="absolute right-0 z-50 mt-2 w-48 overflow-hidden rounded-xl border border-border bg-elevated p-1 shadow-2xl shadow-black/50 animate-fade-up">
+                  {user ? (
+                    <>
+                      <div className="px-3 py-2">
+                        <p className="text-xs text-faint">Signed in as</p>
+                        <p className="truncate text-sm font-medium text-foreground">
+                          {user.email}
+                        </p>
+                      </div>
+
+                      <div className="my-1 h-px bg-border" />
+
+                      <NavLink
+                        to="/profile"
+                        onClick={() => setMenuOpen(false)}
+                        className="block rounded-lg px-3 py-2 text-sm text-foreground transition hover:bg-surface-2"
+                      >
+                        Profile
+                      </NavLink>
+
+                      <button
+                        onClick={handleLogout}
+                        className="block w-full rounded-lg px-3 py-2 text-left text-sm text-destructive transition hover:bg-surface-2"
+                      >
+                        Log out
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <NavLink
+                        to="/login"
+                        onClick={() => setMenuOpen(false)}
+                        className="block rounded-lg px-3 py-2 text-sm text-foreground transition hover:bg-surface-2"
+                      >
+                        Log in
+                      </NavLink>
+
+                      <NavLink
+                        to="/register"
+                        onClick={() => setMenuOpen(false)}
+                        className="block rounded-lg px-3 py-2 text-sm text-foreground transition hover:bg-surface-2"
+                      >
+                        Register
+                      </NavLink>
+                    </>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </header>

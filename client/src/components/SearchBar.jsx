@@ -38,9 +38,9 @@ export default function SearchBar({ setResults, setSearchMode }) {
   }
 
   return (
-    <div className="relative w-full">
+    <div className="relative min-w-0 w-full">
       <form onSubmit={handleSubmit}>
-        <div className="group flex items-center gap-2.5 rounded-full border border-border bg-surface px-4 py-2.5 transition focus-within:border-primary/60 focus-within:bg-surface-2 hover:border-border-strong">
+        <div className="group flex min-w-0 items-center gap-2.5 rounded-full border border-border bg-surface px-4 py-2.5 transition focus-within:border-primary/60 focus-within:bg-surface-2 hover:border-border-strong">
           <svg
             className="h-4.5 w-4.5 shrink-0 text-faint transition group-focus-within:text-primary"
             viewBox="0 0 20 20"
@@ -58,7 +58,7 @@ export default function SearchBar({ setResults, setSearchMode }) {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             aria-label="Search"
-            className="w-full bg-transparent text-sm text-foreground placeholder:text-faint focus:outline-none sm:text-base"
+            className="min-w-0 flex-1 bg-transparent text-sm text-foreground placeholder:text-faint focus:outline-none sm:text-base"
           />
         </div>
 
