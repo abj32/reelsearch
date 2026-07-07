@@ -59,7 +59,7 @@ export default function Home({ user, results, searchMode, watchlist, setWatchlis
         <span className="mb-6 rounded-full border border-border bg-surface px-4 py-1.5 text-xs font-medium uppercase tracking-[0.2em] text-primary">
           Films · Series · Games
         </span>
-        <h1 className="font-serif text-4xl leading-tight text-foreground text-balance sm:text-5xl md:text-6xl">
+        <h1 className="font-serif text-4xl leading-tight text-foreground text-balance sm:text-5xl md:text-6xl max-w-lg">
           Find what’s worth pressing play.
         </h1>
         <p className="mt-5 max-w-xl text-pretty text-base leading-relaxed text-muted sm:text-lg">
