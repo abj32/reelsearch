@@ -32,7 +32,7 @@ Backend health check:
 </p>
 
 <p align="center">
-Search results display key movie metadata and allow users to add titles directly to their watchlist.
+Search results display key movie metadata and allow users to add or remove titles from their watchlist.
 </p>
 
 <br>
@@ -299,15 +299,24 @@ Once `npm run dev` is running:
    - Normalizes ratings from IMDb, Rotten Tomatoes, and Metacritic into a composite score
    - Returns a list of enriched movie objects to the client
 3. **Managing Your Watchlist**
-- After searching, click the “+” button on a card to add it to your watchlist
+- After searching, click the “+” button on a card to add it to your watchlist; saved titles show a trash icon that removes them from your watchlist
 - The frontend calls:
    - `POST /api/watchlist` with `{ "imdbId": "<imdbID>" }`
 - The item is stored in your watchlist in the database with a relation to your userId
-- Visit the **Watchlist** page via the bookmark icon in the header (or **Avatar → Watchlist**) to browse saved items, view full details, and remove titles
+- Visit the **Watchlist** page via the bookmark icon in the header to browse saved items, view full details, and remove titles
 
 <br>
 
 ## API Overview (Backend routes)
+
+### Error responses
+API errors return a consistent JSON shape:
+```json
+{
+  "code": "MACHINE_READABLE_ERROR_CODE",
+  "message": "Human-readable error message"
+}
+```
 
 ### Health
 - `GET /health`\
