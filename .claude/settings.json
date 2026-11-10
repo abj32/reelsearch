@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "allow": [
+      "Bash(npm run *)",
+      "Bash(npm test *)",
+      "Bash(npm install)",
+      "Bash(npm ci)",
+      "Bash(npx tsc *)",
+      "Bash(npm --prefix client run *)",
+      "PowerShell(npm run *)",
+      "PowerShell(npm test *)",
+      "PowerShell(npm install)",
+      "PowerShell(npm ci)",
+      "PowerShell(npx tsc *)",
+      "PowerShell(npm --prefix client run *)"
+    ]
+  }
+}
