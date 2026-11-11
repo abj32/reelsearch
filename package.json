@@ -15,7 +15,8 @@
   "devDependencies": {
     "concurrently": "^9.2.0",
     "nodemon": "^3.1.10",
-    "prisma": "^6.19.0"
+    "prisma": "^6.19.0",
+    "typescript": "^6.0.3"
   },
   "dependencies": {
     "@prisma/client": "^6.19.0",
