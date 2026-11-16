@@ -145,3 +145,5 @@ vite.config.ts.timestamp-*
 .claude/worktrees/
 CLAUDE.local.md
 CLAUDE-SECURITY-*/
+
+/docs/work-plan/
