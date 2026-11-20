@@ -1,3 +1,5 @@
+Hold every change to the standard a hiring engineer expects of a production repo.
+
 ## Architecture
 
 - Much of the code predates these rules; the gaps are filed as issues. Write new code to the rules, not to nearby code.
@@ -7,6 +9,7 @@
 - Provider "no results" returns `[]`; provider failures throw. An empty result never stands in for an error.
 - `server/utils` hold pure functions with no I/O.
 - Client components reach the API only through `client/src/services`.
+- The Title shape is defined once, by the Zod `TitleSchema` in `shared/`. The client imports it with `import type`, keeping Zod out of the client bundle.
 - Error responses are `{ code, message }`, plus `details` on validation errors.
 
 ## Agent skills
