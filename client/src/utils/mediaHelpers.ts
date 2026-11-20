@@ -1,17 +1,19 @@
 // Shared helpers for working with normalized search results and watchlist items.
 // Both shapes now carry sortScore (composite 0-100) and a Ratings array.
 
+import type { Movie } from "../types";
+
 export const TYPE_META = {
   movie:  { label: "Movie",  short: "Film"   },
   series: { label: "Series", short: "Series" },
   game:   { label: "Game",   short: "Game"   },
 };
 
-export function getTypeMeta(type) {
-  return TYPE_META[type] || { label: "Title", short: "Title" };
+export function getTypeMeta(type: string | null) {
+  return TYPE_META[type as keyof typeof TYPE_META] || { label: "Title", short: "Title" };
 }
 
-function findRating(item, source) {
+function findRating(item: Movie, source: string) {
   if (!Array.isArray(item?.Ratings)) return null;
   const match = item.Ratings.find((r) => r.Source === source);
   return match ? match.Value : null;
@@ -19,7 +21,7 @@ function findRating(item, source) {
 
 // Returns the composite average rating as a number out of 10 (or null if unavailable).
 // sortScore is 0-100; dividing by 10 gives the familiar display format.
-export function getStarRating(item) {
+export function getStarRating(item: Movie | null | undefined) {
   if (item == null) return null;
 
   if (typeof item.sortScore === 'number' && !Number.isNaN(item.sortScore)) {
@@ -30,7 +32,7 @@ export function getStarRating(item) {
 }
 
 // Returns display strings for the three critic scores.
-export function getCriticScores(item) {
+export function getCriticScores(item: Movie) {
   const imdb =
     findRating(item, "Internet Movie Database") ||
     (item?.imdbRating && item.imdbRating !== "N/A" ? `${item.imdbRating}/10` : null) ||
@@ -52,7 +54,7 @@ export function getCriticScores(item) {
   };
 }
 
-export function getYearValue(item) {
+export function getYearValue(item: Movie) {
   if (typeof item?.releaseYear === "number") return item.releaseYear;
   const parsed = parseInt(String(item?.Year || ""), 10);
   return Number.isNaN(parsed) ? 0 : parsed;
@@ -61,18 +63,18 @@ export function getYearValue(item) {
 export const SORT_OPTIONS   = ["Relevance", "Rating", "Title", "Year"];
 export const FILTER_OPTIONS = ["All", "Movies", "Series", "Games"];
 
-const FILTER_TO_TYPE = {
+const FILTER_TO_TYPE: Record<string, string> = {
   Movies: "movie",
   Series: "series",
   Games:  "game",
 };
 
-export function applyFilter(items, filter) {
+export function applyFilter(items: Movie[], filter: string) {
   if (filter === "All" || !FILTER_TO_TYPE[filter]) return items;
   return items.filter((item) => item.Type === FILTER_TO_TYPE[filter]);
 }
 
-export function applySort(items, sort) {
+export function applySort(items: Movie[], sort: string) {
   const copy = [...items];
   switch (sort) {
     case "Rating":
@@ -89,7 +91,7 @@ export function applySort(items, sort) {
   }
 }
 
-export function getPoster(item) {
+export function getPoster(item: Movie) {
   if (item?.Poster && item.Poster !== "N/A") return item.Poster;
   return null;
 }

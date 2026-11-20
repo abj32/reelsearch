@@ -1,9 +1,10 @@
 import { useEffect } from "react";
 import { getCriticScores, getPoster, getStarRating, getTypeMeta } from "../utils/mediaHelpers";
+import type { Movie } from "../types";
 
 // min-w-0 prevents CSS Grid from letting this cell overflow its column on narrow screens.
 // Centered on mobile, left-aligned on sm+.
-function ScoreCard({ label, value }) {
+function ScoreCard({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex min-w-0 flex-col items-center rounded-xl border border-border bg-surface-2 px-2 py-3 text-center sm:items-start sm:px-4 sm:text-left">
       <span className="text-[10px] uppercase tracking-wide text-faint sm:text-xs">{label}</span>
@@ -12,9 +13,9 @@ function ScoreCard({ label, value }) {
   );
 }
 
-export default function ItemDetail({ item, onClose }) {
+export default function ItemDetail({ item, onClose }: { item: Movie; onClose: () => void }) {
   useEffect(() => {
-    function onKey(e) {
+    function onKey(e: KeyboardEvent) {
       if (e.key === "Escape") onClose();
     }
     document.addEventListener("keydown", onKey);
@@ -33,7 +34,7 @@ export default function ItemDetail({ item, onClose }) {
   const rated   = item.Rated && item.Rated !== "N/A" ? item.Rated : "NR";
   const scores  = getCriticScores(item);
 
-  const field = (v) => (v && v !== "N/A" ? v : "—");
+  const field = (v: string | null) => (v && v !== "N/A" ? v : "—");
 
   return (
     <div

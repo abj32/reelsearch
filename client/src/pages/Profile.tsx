@@ -1,6 +1,7 @@
 import { getStarRating, TYPE_META } from "../utils/mediaHelpers";
+import type { Movie, User } from "../types";
 
-function StatChip({ label, value }) {
+function StatChip({ label, value }: { label: string; value: string | number }) {
   return (
     <div className="rounded-xl border border-border bg-surface px-4 py-4 text-center">
       <p className="font-serif text-2xl text-foreground sm:text-3xl">{value}</p>
@@ -9,7 +10,13 @@ function StatChip({ label, value }) {
   );
 }
 
-export default function Profile({ user, watchlist = [], onLogout }) {
+type ProfileProps = {
+  user: User | null;
+  watchlist?: Movie[];
+  onLogout: () => void;
+};
+
+export default function Profile({ user, watchlist = [], onLogout }: ProfileProps) {
   if (!user) {
     return <p className="mt-16 text-center text-muted">You are not logged in.</p>;
   }
@@ -22,7 +29,7 @@ export default function Profile({ user, watchlist = [], onLogout }) {
     ? (rated.reduce((a, b) => a + b, 0) / rated.length).toFixed(1)
     : "—";
 
-  const countByType = (type) => watchlist.filter((m) => m.Type === type).length;
+  const countByType = (type: string) => watchlist.filter((m) => m.Type === type).length;
 
   const memberSince = user.createdAt
     ? new Date(user.createdAt).toLocaleDateString(undefined, {

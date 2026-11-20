@@ -80,6 +80,8 @@ The profile page displays account info alongside watchlist stats computed from s
    - Vite
    - React Router
    - Tailwind CSS v4
+- **Language**
+   - TypeScript (strict)
 - **Backend**
    - Node.js
    - Express
@@ -115,54 +117,55 @@ ReelSearch follows a typical full-stack architecture:
 reelsearch/
 ├─ client/                  # React + Vite frontend
 │  ├─ src/
-│  │  ├─ App.jsx
+│  │  ├─ App.tsx
 │  │  ├─ index.css          # Tailwind v4 theme tokens and global styles
 │  │  ├─ pages/
-│  │  │  ├─ Home.jsx
+│  │  │  ├─ Home.tsx
 │  │  │  ├─ Login.jsx
-│  │  │  ├─ Profile.jsx
+│  │  │  ├─ Profile.tsx
 │  │  │  ├─ Register.jsx
-│  │  │  └─ Watchlist.jsx
+│  │  │  └─ Watchlist.tsx
 │  │  ├─ components/
 │  │  │  ├─ AuthForm.jsx    # Shared login/register form
-│  │  │  ├─ Dropdown.jsx    # Accessible sort/filter dropdown
-│  │  │  ├─ ItemDetail.jsx  # Full-screen detail overlay
-│  │  │  ├─ MediaGrid.jsx   # Shared poster grid with sort/filter toolbar
-│  │  │  ├─ PosterCard.jsx  # Individual poster card with rating badge
-│  │  │  ├─ SearchBar.jsx
-│  │  │  └─ WatchlistChat.jsx
+│  │  │  ├─ Dropdown.tsx    # Accessible sort/filter dropdown
+│  │  │  ├─ ItemDetail.tsx  # Full-screen detail overlay
+│  │  │  ├─ MediaGrid.tsx   # Shared poster grid with sort/filter toolbar
+│  │  │  ├─ PosterCard.tsx  # Individual poster card with rating badge
+│  │  │  ├─ SearchBar.tsx
+│  │  │  └─ WatchlistChat.tsx
 │  │  ├─ utils/
-│  │  │  ├─ mediaHelpers.js  # Sort/filter logic and rating derivation
+│  │  │  ├─ mediaHelpers.ts  # Sort/filter logic and rating derivation
 │  │  │  └─ normalizeMovie.js # Shapes watchlist API responses for the UI
 │  │  └─ services/           # Frontend API wrappers (auth, search, watchlist)
 │  ├─ vercel.json           # Rewrites /api/* to the Render backend in production
 │  └─ vite.config.js
 │
 ├─ server/                  # Express backend (API, auth, watchlist features)
-│  ├─ index.js              # Express entry point
-│  ├─ db.js                 # Prisma client initialization
+│  ├─ index.ts              # Express entry point
+│  ├─ db.ts                 # Prisma client initialization
 │  ├─ lib/
-│  │  └─ openai.js          # OpenAI client setup
+│  │  └─ openai.ts          # OpenAI client setup
 │  ├─ routes/
 │  │  ├─ auth.routes.js
-│  │  ├─ chat.routes.js     # Natural language watchlist queries
-│  │  ├─ search.routes.js
-│  │  └─ watchlist.routes.js
+│  │  ├─ chat.routes.ts     # Natural language watchlist queries
+│  │  ├─ search.routes.ts
+│  │  └─ watchlist.routes.ts
 │  ├─ services/
 │  │  ├─ omdb.service.js    # OMDb API proxy logic
-│  │  ├─ chat.service.js
-│  │  └─ watchlistQuery.service.js
+│  │  ├─ chat.service.ts
+│  │  └─ watchlistQuery.service.ts
 │  ├─ middleware/
 │  │  └─ requireAuth.js     # JWT cookie authentication middleware
 │  └─ utils/
 │     ├─ normalizeSearchResult.js  # Normalizes OMDb search results before sending to client
-│     ├─ ratings.util.js
-│     └─ serializeWatchlistItem.util.js
+│     ├─ ratings.util.ts
+│     └─ serializeWatchlistItem.util.ts
 │
 ├─ prisma/
 │  ├─ schema.prisma         # Prisma schema defining User &Watchlist models
 │  └─ migrations/           # Generated Prisma migrations
 │
+├─ prisma.config.ts         # Prisma CLI config (schema, migrations, database URL)
 ├─ package.json             # Root scripts for dev / server / client
 └─ README.md
 ```
@@ -214,7 +217,7 @@ Normalize critic ratings from multiple sources into a single comparable score.
 ## Getting Started
 
 ### Prerequisites
-- [Node.js](https://nodejs.org/) (version 18 or higher is recommended)
+- [Node.js](https://nodejs.org/) (version 20.19 or higher; 22 recommended)
 - npm (bundled with Node.js)
 - [Docker](https://docs.docker.com/get-docker/) (runs the local Postgres database)
 - An OMDb API key (free: https://www.omdbapi.com/apikey.aspx)

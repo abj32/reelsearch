@@ -1,7 +1,12 @@
 import { useState } from 'react';
+import type { FormEvent } from 'react';
+import type { ApiError } from '../services/api';
 import { sendWatchlistChatMessage } from '../services/chat';
+import type { Movie, WatchlistChatResponse } from '../types';
 
-function getWatchlistChatErrorMessage(err) {
+type ChatEntry = { role: 'user' | 'assistant'; text: string; isError?: boolean };
+
+function getWatchlistChatErrorMessage(err: ApiError) {
   switch (err.code) {
     case 'CHAT_MESSAGE_REQUIRED':
       return 'Enter a message first.';
@@ -27,13 +32,13 @@ function getWatchlistChatErrorMessage(err) {
   }
 }
 
-export default function WatchlistChat({ onResults }) {
+export default function WatchlistChat({ onResults }: { onResults: (items: Movie[]) => void }) {
   const [isOpen, setIsOpen] = useState(false);
   const [message, setMessage] = useState('');
-  const [chatLog, setChatLog] = useState([]);
+  const [chatLog, setChatLog] = useState<ChatEntry[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  async function handleSubmit(e) {
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
 
     const trimmedMessage = message.trim();
@@ -62,7 +67,8 @@ export default function WatchlistChat({ onResults }) {
           text: buildSuccessMessage(data),
         },
       ]);
-    } catch (err) {
+    } catch (caught) {
+      const err = caught as ApiError;
       setChatLog((prev) => [
         ...prev,
         {
@@ -76,7 +82,7 @@ export default function WatchlistChat({ onResults }) {
     }
   }
 
-  function buildSuccessMessage(data) {
+  function buildSuccessMessage(data: WatchlistChatResponse) {
     const count = data.items?.length ?? 0;
 
     if (count === 0) {

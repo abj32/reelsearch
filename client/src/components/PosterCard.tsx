@@ -1,6 +1,7 @@
 import { getPoster, getStarRating, getTypeMeta } from "../utils/mediaHelpers";
+import type { Movie } from "../types";
 
-function StarBadge({ rating }) {
+function StarBadge({ rating }: { rating: number | null }) {
   if (rating == null) return null;
 
   return (
@@ -13,7 +14,16 @@ function StarBadge({ rating }) {
   );
 }
 
-export default function PosterCard({ item, mode, inWatchlist, onAdd, onRemove, onOpen }) {
+type PosterCardProps = {
+  item: Movie;
+  mode: "add" | "remove";
+  inWatchlist: boolean;
+  onAdd?: (item: Movie) => void;
+  onRemove: (item: Movie) => void;
+  onOpen: (item: Movie) => void;
+};
+
+export default function PosterCard({ item, mode, inWatchlist, onAdd, onRemove, onOpen }: PosterCardProps) {
   const poster = getPoster(item);
   const rating = getStarRating(item);
   const type = getTypeMeta(item.Type);
@@ -41,8 +51,8 @@ export default function PosterCard({ item, mode, inWatchlist, onAdd, onRemove, o
             loading="lazy"
             className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.04]"
             onError={(e) => {
-              e.target.onerror = null;
-              e.target.style.display = "none";
+              e.currentTarget.onerror = null;
+              e.currentTarget.style.display = "none";
             }}
           />
         ) : (
@@ -70,7 +80,7 @@ export default function PosterCard({ item, mode, inWatchlist, onAdd, onRemove, o
               return;
             }
 
-            onAdd(item);
+            onAdd?.(item);
           }}
           aria-label={
             shouldRemove

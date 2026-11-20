@@ -1,9 +1,12 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import type { Dispatch, SetStateAction } from "react";
+import type { ApiError } from "../services/api";
 import { addToWatchlist, removeFromWatchlist } from "../services/watchlist";
+import type { Movie, User } from "../types";
 import MediaGrid from "../components/MediaGrid";
 
-function getWatchlistActionErrorMessage(err, action) {
+function getWatchlistActionErrorMessage(err: ApiError, action: "add" | "remove") {
   if (err.code === "AUTH_REQUIRED" || err.code === "AUTH_INVALID") {
     return "Please log in to manage your watchlist.";
   }
@@ -31,16 +34,24 @@ function getWatchlistActionErrorMessage(err, action) {
   return err.message || "Watchlist update failed. Please try again.";
 }
 
-export default function Home({ user, results, searchMode, watchlist, setWatchlist }) {
+type HomeProps = {
+  user: User | null;
+  results: Movie[];
+  searchMode: "idle" | "searched";
+  watchlist: Movie[];
+  setWatchlist: Dispatch<SetStateAction<Movie[]>>;
+};
+
+export default function Home({ user, results, searchMode, watchlist, setWatchlist }: HomeProps) {
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
   const [watchlistMessage, setWatchlistMessage] = useState("");
   const navigate = useNavigate();
 
-  function isInWatchlist(imdbID) {
+  function isInWatchlist(imdbID: string) {
     return watchlist.some((m) => m.imdbID === imdbID);
   }
 
-  async function handleAdd(movie) {
+  async function handleAdd(movie: Movie) {
     if (!user) {
       setShowLoginPrompt(true);
       return;
@@ -62,7 +73,8 @@ export default function Home({ user, results, searchMode, watchlist, setWatchlis
 
         return [...prev, item];
       });
-    } catch (err) {
+    } catch (caught) {
+      const err = caught as ApiError;
       console.error("Failed to add to watchlist:", err);
 
       if (err.code === "AUTH_REQUIRED" || err.code === "AUTH_INVALID") {
@@ -79,7 +91,7 @@ export default function Home({ user, results, searchMode, watchlist, setWatchlis
     }
   }
 
-  async function handleRemove(movie) {
+  async function handleRemove(movie: Movie) {
     if (!user) {
       setShowLoginPrompt(true);
       return;
@@ -91,7 +103,8 @@ export default function Home({ user, results, searchMode, watchlist, setWatchlis
       await removeFromWatchlist(movie.imdbID);
 
       setWatchlist((prev) => prev.filter((m) => m.imdbID !== movie.imdbID));
-    } catch (err) {
+    } catch (caught) {
+      const err = caught as ApiError;
       console.error("Failed to remove from watchlist:", err);
 
       if (err.code === "AUTH_REQUIRED" || err.code === "AUTH_INVALID") {
@@ -164,7 +177,7 @@ export default function Home({ user, results, searchMode, watchlist, setWatchlis
   );
 }
 
-function LoginPrompt({ onGo, onClose }) {
+function LoginPrompt({ onGo, onClose }: { onGo: () => void; onClose: () => void }) {
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm animate-overlay-in"

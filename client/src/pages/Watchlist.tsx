@@ -1,8 +1,11 @@
 import { useState } from "react";
+import type { Dispatch, SetStateAction } from "react";
+import type { ApiError } from "../services/api";
 import { removeFromWatchlist } from "../services/watchlist";
+import type { Movie } from "../types";
 import MediaGrid from "../components/MediaGrid";
 
-function getDeleteErrorMessage(err) {
+function getDeleteErrorMessage(err: ApiError) {
   switch (err.code) {
     case "AUTH_REQUIRED":
       return "Please sign in to edit your watchlist.";
@@ -18,17 +21,23 @@ function getDeleteErrorMessage(err) {
   }
 }
 
-export default function Watchlist({ watchlist, setWatchlist }) {
+type WatchlistProps = {
+  watchlist: Movie[];
+  setWatchlist: Dispatch<SetStateAction<Movie[]>>;
+};
+
+export default function Watchlist({ watchlist, setWatchlist }: WatchlistProps) {
   const [error, setError] = useState("");
 
-  async function handleDelete(item) {
+  async function handleDelete(item: Movie) {
     setError("");
 
     try {
       await removeFromWatchlist(item.imdbID);
 
       setWatchlist((prev) => prev.filter((m) => m.imdbID !== item.imdbID));
-    } catch (err) {
+    } catch (caught) {
+      const err = caught as ApiError;
       console.error("Failed to remove title:", err);
 
       if (err.code === "WATCHLIST_ITEM_NOT_FOUND") {

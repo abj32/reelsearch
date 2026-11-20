@@ -21,7 +21,7 @@ router.post('/watchlist', requireAuth, async (req, res) => {
     // Parse the user's natural-language request into a structured watchlist action.
     const action = await parseWatchlistMessage(message.trim());
 
-    let rawFilters = {};
+    let rawFilters: Record<string, unknown>;
 
     if (action.intent === 'sort_watchlist') {
       rawFilters = {
@@ -56,7 +56,7 @@ router.post('/watchlist', requireAuth, async (req, res) => {
     } catch (err) {
       return res.status(400).json({
         code: "CHAT_INVALID_WATCHLIST_FILTERS",
-        message: err.message,
+        message: (err as Error).message,
       });
     }
 
