@@ -246,7 +246,7 @@ Gap: no tests exist yet ([#48](https://github.com/abj32/reelsearch/issues/48), e
 - **Budget warnings:** when the daily OMDb budget runs out or the OpenAI cap is reached, the API logs a warning and sends a Sentry event.
 - **Errors:** unexpected errors, including cron failures, reach Sentry with the request path.
 
-Gaps: the API still runs on Render ([#61](https://github.com/abj32/reelsearch/issues/61)); no CI, migration check or preview branches ([#66](https://github.com/abj32/reelsearch/issues/66)); no Docker Compose ([#65](https://github.com/abj32/reelsearch/issues/65)); logging, request IDs and Sentry ([#67](https://github.com/abj32/reelsearch/issues/67)). The health check and uptime monitor are tracked in [#75](https://github.com/abj32/reelsearch/issues/75).
+Gaps: the API still targets Render, whose service is suspended ([#61](https://github.com/abj32/reelsearch/issues/61)); production deployments stay off until signup/login is gone and the guest demo has its limits and privacy notice ([#59](https://github.com/abj32/reelsearch/issues/59), [#62](https://github.com/abj32/reelsearch/issues/62), [#71](https://github.com/abj32/reelsearch/issues/71)); no CI, migration check or preview branches ([#66](https://github.com/abj32/reelsearch/issues/66)); no Docker Compose ([#65](https://github.com/abj32/reelsearch/issues/65)); logging, request IDs and Sentry ([#67](https://github.com/abj32/reelsearch/issues/67)). The health check and uptime monitor are tracked in [#75](https://github.com/abj32/reelsearch/issues/75).
 
 ## 12. Open questions
 
