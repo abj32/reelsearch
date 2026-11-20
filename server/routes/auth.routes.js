@@ -43,7 +43,7 @@ router.post('/register', async (req, res) => {
     res.cookie('sid', sign(user.id), COOKIE_OPTS);
     
     return res.status(201).json({ id: user.id, email: user.email, createdAt: user.createdAt });
-  } catch (e) {
+  } catch (err) {
     console.error("Register error:", err);
 
     return res.status(500).json({
@@ -82,7 +82,7 @@ router.post('/login', async (req, res) => {
     res.cookie('sid', sign(user.id), COOKIE_OPTS);
 
     return res.json({ id: user.id, email: user.email, createdAt: user.createdAt });
-  } catch (e) {
+  } catch (err) {
     console.error("Login error:", err);
 
     return res.status(500).json({
@@ -113,7 +113,7 @@ router.get('/profile', requireAuth, async (req, res) => {
     }
 
     return res.json(user);
-  } catch (e) {
+  } catch (err) {
     console.error("Profile error:", err);
 
     return res.status(500).json({
