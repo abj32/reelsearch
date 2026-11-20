@@ -1,4 +1,6 @@
-export function normalizeRatings(ratings) {
+export type OmdbRating = { Source: string; Value: string };
+
+export function normalizeRatings(ratings: OmdbRating[]) {
   const map = Object.fromEntries(ratings.map(r => [r.Source, r.Value]));
 
   // Raw strings to store for display
@@ -7,20 +9,20 @@ export function normalizeRatings(ratings) {
   const mcRaw   = map['Metacritic'] ?? null;              // "82/100"
 
   // IMDB
-  let imdbScore = null;
+  let imdbScore: number | null = null;
   if (imdbRaw) {
     const num = parseFloat(imdbRaw.split("/")[0]);
     imdbScore = num * 10;
   }
 
   // Rotten Tomatoes
- let rtScore = null;
+  let rtScore: number | null = null;
   if (rtRaw) {
     rtScore = parseInt(rtRaw.replace("%", ""));
   }
 
   // Metacritic
-  let mcScore = null;
+  let mcScore: number | null = null;
   if (mcRaw) {
     mcScore = parseInt(mcRaw.split("/")[0]);
   }

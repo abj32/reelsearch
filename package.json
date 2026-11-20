@@ -2,30 +2,39 @@
   "name": "reelsearch",
   "version": "1.0.0",
   "type": "module",
-  "main": "index.js",
+  "main": "server/index.ts",
   "scripts": {
     "dev": "concurrently \"npm run start-server\" \"npm run start-client\"",
-    "start-server": "nodemon server/index.js",
+    "start-server": "tsx watch server/index.ts",
     "start-client": "npm --prefix client run dev",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate",
+    "start": "tsx server/index.ts",
+    "typecheck": "tsc --noEmit -p . && tsc --noEmit -p client"
   },
   "keywords": [],
   "author": "",
   "license": "MIT",
   "devDependencies": {
+    "@types/bcrypt": "^6.0.0",
+    "@types/cookie-parser": "^1.4.10",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/node": "^22.20.5",
     "concurrently": "^9.2.0",
-    "nodemon": "^3.1.10",
-    "prisma": "^6.19.0",
+    "prisma": "^7.10.1",
     "typescript": "^6.0.3"
   },
   "dependencies": {
-    "@prisma/client": "^6.19.0",
+    "@prisma/adapter-pg": "^7.10.1",
+    "@prisma/client": "^7.10.1",
     "bcrypt": "^6.0.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "dotenv": "^17.3.1",
     "express": "^5.1.0",
     "jsonwebtoken": "^9.0.2",
-    "openai": "^6.34.0"
+    "openai": "^6.34.0",
+    "tsx": "^4.23.15"
   }
 }

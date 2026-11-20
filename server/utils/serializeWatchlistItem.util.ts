@@ -1,4 +1,6 @@
-export function serializeWatchlistItem(item) {
+import type { WatchlistItem } from '../../generated/prisma/client.js';
+
+export function serializeWatchlistItem(item: WatchlistItem) {
   return {
     ...item,
     imdbID: item.imdbId,

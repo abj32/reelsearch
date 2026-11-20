@@ -1,4 +1,25 @@
-export function normalizeWatchlistFilters(filters = {}) {
+import type { Prisma } from '../../generated/prisma/client.js';
+
+const SORT_FIELDS = new Set([
+  'createdAt',
+  'title',
+  'releaseYear',
+  'runtimeMins',
+  'imdbScore',
+  'rtScore',
+  'mcScore',
+  'sortScore',
+] as const);
+
+type SortField = typeof SORT_FIELDS extends Set<infer T> ? T : never;
+
+function isSortField(value: unknown): value is SortField {
+  return SORT_FIELDS.has(value as SortField);
+}
+
+export type WatchlistFilters = ReturnType<typeof normalizeWatchlistFilters>;
+
+export function normalizeWatchlistFilters(filters: Record<string, unknown> = {}) {
 	const { type, genre, yearGte, yearLte, runtimeLte, sortBy, order } = filters;
 
     // Optional type filter
@@ -77,25 +98,13 @@ export function normalizeWatchlistFilters(filters = {}) {
       }
     }
 
-	// Allowed sort fields
-    const allowedSortFields = new Set([
-      'createdAt',
-      'title',
-      'releaseYear',
-	  'runtimeMins',
-      'imdbScore',
-      'rtScore',
-      'mcScore',
-      'sortScore',
-    ]);
-
-    const sortField =
-      typeof sortBy === 'string' && allowedSortFields.has(sortBy)
+    const sortField: SortField =
+      isSortField(sortBy)
         ? sortBy
         : 'createdAt';  // Default to *date added to watchlist*
 
     // Fields with descending order by default
-    const defaultDescFields = new Set([
+    const defaultDescFields = new Set<SortField>([
       'createdAt',
       'imdbScore',
       'rtScore',
@@ -103,7 +112,7 @@ export function normalizeWatchlistFilters(filters = {}) {
       'sortScore',
     ]);
 
-    const sortOrder =
+    const sortOrder: Prisma.SortOrder =
       order === 'desc' || order === 'asc'
         ? order
         : defaultDescFields.has(sortField)
@@ -123,10 +132,10 @@ export function normalizeWatchlistFilters(filters = {}) {
     };
 }
 
-export function buildWatchlistQuery({ userId, filters }) {
+export function buildWatchlistQuery({ userId, filters }: { userId: number; filters: WatchlistFilters }) {
 	const { type, genre, yearGte, yearLte, runtimeLte, sortBy, order } = filters;
 
-	const where = { userId };
+	const where: Prisma.WatchlistItemWhereInput = { userId };
 
 	// --- Filtering ---
 	if (type) where.type = type;    // type
@@ -134,15 +143,15 @@ export function buildWatchlistQuery({ userId, filters }) {
 	if (genre) where.genres = { has: genre };   // genre
 
 	if (yearGte != null || yearLte != null) {   // year
-		where.releaseYear = {};
-
-		if (yearGte != null) where.releaseYear.gte = yearGte;
-		if (yearLte != null) where.releaseYear.lte = yearLte;
+		where.releaseYear = {
+			gte: yearGte ?? undefined,
+			lte: yearLte ?? undefined,
+		};
 	}
 
 	if (runtimeLte != null) where.runtimeMins = { lte: runtimeLte };    // runtime
 
-	const orderBy = { [sortBy]: order };
+	const orderBy: Prisma.WatchlistItemOrderByWithRelationInput = { [sortBy]: order };
 
 	return { where, orderBy };
 }

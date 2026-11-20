@@ -1,5 +1,17 @@
 import { openai } from '../lib/openai.js';
 
+// Matches watchlistActionSchema; the model's strict structured output guarantees this shape.
+export type WatchlistAction = {
+  intent: 'filter_watchlist' | 'sort_watchlist';
+  type: 'movie' | 'series' | 'game' | null;
+  genre: string | null;
+  yearGte: number | null;
+  yearLte: number | null;
+  runtimeLte: number | null;
+  sortBy: string | null;
+  order: 'asc' | 'desc' | null;
+};
+
 const watchlistActionSchema = {
   type: 'object',
   additionalProperties: false,
@@ -55,7 +67,7 @@ const watchlistActionSchema = {
   ],
 };
 
-export async function parseWatchlistMessage(message) {
+export async function parseWatchlistMessage(message: string): Promise<WatchlistAction> {
   const response = await openai.responses.create({
     model: 'gpt-5.4-mini',
     input: [

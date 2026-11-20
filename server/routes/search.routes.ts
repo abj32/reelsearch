@@ -18,7 +18,7 @@ router.get('/', async (req, res) => {
     const movies = await combinedSearch(q.trim());
     return res.json(movies.map(normalizeSearchResult));
   } catch (err) {
-    if (err.code === "TOO_MANY_RESULTS") {
+    if (err instanceof Error && 'code' in err && err.code === "TOO_MANY_RESULTS") {
       return res.status(400).json({
         code: "TOO_MANY_RESULTS",
         message: "Too many results",

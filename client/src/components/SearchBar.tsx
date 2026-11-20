@@ -1,8 +1,11 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import type { Dispatch, FormEvent, SetStateAction } from "react";
+import type { ApiError } from "../services/api";
 import { searchMovies } from "../services/search";
+import type { Movie } from "../types";
 
-function getSearchErrorMessage(err) {
+function getSearchErrorMessage(err: ApiError) {
   switch (err.code) {
     case "INVALID_QUERY":
       return "Please enter a search term.";
@@ -18,12 +21,17 @@ function getSearchErrorMessage(err) {
   }
 }
 
-export default function SearchBar({ setResults, setSearchMode }) {
+type SearchBarProps = {
+  setResults: Dispatch<SetStateAction<Movie[]>>;
+  setSearchMode: Dispatch<SetStateAction<'idle' | 'searched'>>;
+};
+
+export default function SearchBar({ setResults, setSearchMode }: SearchBarProps) {
   const [query, setQuery] = useState("");
   const [searchMessage, setSearchMessage] = useState("");
   const navigate = useNavigate();
 
-  async function handleSubmit(e) {
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
 
     const trimmed = query.trim();
@@ -42,7 +50,8 @@ export default function SearchBar({ setResults, setSearchMode }) {
       setResults(movies);
       setSearchMode("searched");
       navigate("/");
-    } catch (err) {
+    } catch (caught) {
+      const err = caught as ApiError;
       console.error("Search failed:", err);
       setSearchMessage(getSearchErrorMessage(err));
     }

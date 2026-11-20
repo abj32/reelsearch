@@ -1,11 +1,12 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, type ReactNode } from 'react';
 import { BrowserRouter, Routes, Route, NavLink, useNavigate, Navigate } from "react-router-dom";
 import Home from './pages/Home';
 import SearchBar from "./components/SearchBar";
 
 import { getProfile, logout } from "./services/auth";
 import { fetchWatchlist } from './services/watchlist';
-import { subscribeToApiLoading } from './services/api';
+import { subscribeToApiLoading, type ApiError } from './services/api';
+import type { Movie, User } from './types';
 import Register from "./pages/Register";
 import Login from "./pages/Login";
 import Profile from "./pages/Profile";
@@ -13,7 +14,13 @@ import Watchlist from './pages/Watchlist';
 import WatchlistChat from './components/WatchlistChat';
 
 // Wrapper to protect pages needing logged in user
-function ProtectedRoute({ user, checkingAuth, children }) {
+type ProtectedRouteProps = {
+  user: User | null;
+  checkingAuth: boolean;
+  children: ReactNode;
+};
+
+function ProtectedRoute({ user, checkingAuth, children }: ProtectedRouteProps) {
   // While still checking /auth/profile on initial load, don't render anything yet
   if (checkingAuth) return null;
 
@@ -24,7 +31,7 @@ function ProtectedRoute({ user, checkingAuth, children }) {
   return children;
 }
 
-function getProfileErrorMessage(err) {
+function getProfileErrorMessage(err: ApiError) {
   switch (err.code) {
     case "AUTH_REQUIRED":
       return "";
@@ -44,7 +51,7 @@ function getProfileErrorMessage(err) {
   }
 }
 
-function getWatchlistErrorMessage(err) {
+function getWatchlistErrorMessage(err: ApiError) {
   switch (err.code) {
     case "AUTH_REQUIRED":
       return "Please log in to view your watchlist.";
@@ -61,16 +68,16 @@ function getWatchlistErrorMessage(err) {
 }
 
 function AppShell() {
-  const [results, setResults] = useState([]); // stores results of search
-  const [searchMode, setSearchMode] = useState('idle'); // 'idle' | 'searched'
-  const [user, setUser] = useState(null); // stores logged-in user (or null)
+  const [results, setResults] = useState<Movie[]>([]); // stores results of search
+  const [searchMode, setSearchMode] = useState<'idle' | 'searched'>('idle'); // 'idle' | 'searched'
+  const [user, setUser] = useState<User | null>(null); // stores logged-in user (or null)
   const [checkingAuth, setCheckingAuth] = useState(true); // while we call /auth/profile on load
   const [menuOpen, setMenuOpen] = useState(false); // dropdown state
-  const [watchlist, setWatchlist] = useState([]); // stores watchlist
+  const [watchlist, setWatchlist] = useState<Movie[]>([]); // stores watchlist
   const [isApiLoading, setIsApiLoading] = useState(false); // global API loading state
   const [appMessage, setAppMessage] = useState("");
 
-  const menuRef = useRef(null);
+  const menuRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
   // Check if user is logged in on first load via their cookie
@@ -78,9 +85,10 @@ function AppShell() {
     (async () => {
       try {
         const profile = await getProfile(); // GET /api/auth/profile
-        setUser(profile);
+        setUser(profile as User);
         setAppMessage("");
-      } catch (err) {
+      } catch (caught) {
+        const err = caught as ApiError;
         const message = getProfileErrorMessage(err);
 
         if (err.code === "AUTH_REQUIRED") {
@@ -121,7 +129,8 @@ function AppShell() {
       try {
         const items = await fetchWatchlist();
         setWatchlist(items);
-      } catch (err) {
+      } catch (caught) {
+        const err = caught as ApiError;
         if (err.code === "AUTH_REQUIRED" || err.code === "AUTH_INVALID") {
           setUser(null);
           setWatchlist([]);

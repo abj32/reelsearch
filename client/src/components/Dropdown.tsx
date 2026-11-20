@@ -1,15 +1,22 @@
 import { useEffect, useRef, useState } from "react";
 
 // A small, accessible select-style dropdown styled for the dark theme.
-export default function Dropdown({ label, value, options, onChange }) {
+type DropdownProps = {
+  label: string;
+  value: string;
+  options: string[];
+  onChange: (option: string) => void;
+};
+
+export default function Dropdown({ label, value, options, onChange }: DropdownProps) {
   const [open, setOpen] = useState(false);
-  const ref = useRef(null);
+  const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    function handleClick(e) {
-      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+    function handleClick(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
     }
-    function handleKey(e) {
+    function handleKey(e: KeyboardEvent) {
       if (e.key === "Escape") setOpen(false);
     }
     document.addEventListener("mousedown", handleClick);

@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { Prisma } from '../../generated/prisma/client.js';
 import { prisma } from '../db.js';
 import { requireAuth } from '../middleware/requireAuth.js';
 import { getMovieDetails } from '../services/omdb.service.js';
@@ -18,7 +19,7 @@ router.get('/', requireAuth, async (req, res) => {
     } catch (err) {
       return res.status(400).json({
         code: "INVALID_WATCHLIST_FILTERS",
-        message: err.message,
+        message: (err as Error).message,
       });
     }
 
@@ -45,14 +46,13 @@ router.get('/', requireAuth, async (req, res) => {
   }
 });
 
-function naToNull(value) {
-  if (value == null) return null;
-  if (typeof value !== 'string') return value;
+function naToNull(value: unknown) {
+  if (typeof value !== 'string') return null;
   const trimmed = value.trim();
   return trimmed === '' || trimmed === 'N/A' ? null : trimmed;
 }
 
-function parseCsvArray(value) {
+function parseCsvArray(value: unknown) {
   const normalized = naToNull(value);
   if (!normalized) return [];
   return normalized
@@ -61,7 +61,7 @@ function parseCsvArray(value) {
     .filter(Boolean);
 }
 
-function parseReleaseYear(value) {
+function parseReleaseYear(value: unknown) {
   const normalized = naToNull(value);
   if (!normalized) return null;
 
@@ -69,7 +69,7 @@ function parseReleaseYear(value) {
   return match ? Number(match[0]) : null;
 }
 
-function parseRuntimeMins(value) {
+function parseRuntimeMins(value: unknown) {
   const normalized = naToNull(value);
   if (!normalized) return null;
 
@@ -77,7 +77,7 @@ function parseRuntimeMins(value) {
   return match ? Number(match[1]) : null;
 }
 
-function parseBoxOfficeValue(value) {
+function parseBoxOfficeValue(value: unknown) {
   const normalized = naToNull(value);
   if (!normalized) return null;
 
@@ -125,6 +125,7 @@ router.post('/', requireAuth, async (req, res) => {
     const releaseYear = parseReleaseYear(movie.Year);
 
     const type = naToNull(movie.Type);
+    if (!type) throw new Error(`OMDb returned no type for ${imdbId}`);
     const rated = naToNull(movie.Rated);
 
     const genre = naToNull(movie.Genre);
@@ -209,7 +210,7 @@ router.delete('/:imdbId', requireAuth, async (req, res) => {
 
     return res.json({ ok: true });
   } catch (err) {
-    if (err.code === "P2025") {
+    if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2025") {
       return res.status(404).json({
         code: "WATCHLIST_ITEM_NOT_FOUND",
         message: "Item not found in watchlist.",

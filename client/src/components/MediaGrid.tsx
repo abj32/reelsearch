@@ -8,6 +8,17 @@ import {
   applyFilter,
   applySort,
 } from "../utils/mediaHelpers";
+import type { Movie } from "../types";
+
+type MediaGridProps = {
+  heading: string;
+  items: Movie[];
+  mode: "add" | "remove";
+  isInWatchlist?: (imdbID: string) => boolean;
+  onAdd?: (item: Movie) => void;
+  onRemove: (item: Movie) => void;
+  emptyMessage?: string;
+};
 
 export default function MediaGrid({
   heading,
@@ -17,10 +28,10 @@ export default function MediaGrid({
   onAdd,
   onRemove,
   emptyMessage,
-}) {
+}: MediaGridProps) {
   const [sort, setSort] = useState("Relevance");
   const [filter, setFilter] = useState("All");
-  const [selected, setSelected] = useState(null);
+  const [selected, setSelected] = useState<Movie | null>(null);
 
   const visible = useMemo(() => {
     const safe = Array.isArray(items) ? items : [];
