@@ -216,7 +216,7 @@ Normalize critic ratings from multiple sources into a single comparable score.
 ### Prerequisites
 - [Node.js](https://nodejs.org/) (version 18 or higher is recommended)
 - npm (bundled with Node.js)
-- A PostgreSQL database URL (e.g. via [Neon](https://neon.com/), [Supabase](https://supabase.com/), local PostgreSQL)
+- [Docker](https://docs.docker.com/get-docker/) (runs the local Postgres database)
 - An OMDb API key (free: https://www.omdbapi.com/apikey.aspx)
 - An OpenAI API key (https://platform.openai.com/)
 
@@ -240,11 +240,18 @@ Normalize critic ratings from multiple sources into a single comparable score.
    cd ..
    ```
 
-3. **Set Up Environment Variables**\
+3. **Start the Local Database**\
+   Requires [Docker](https://docs.docker.com/get-docker/). From the project root run:
+   ```bash
+   docker compose up -d --wait
+   ```
+   This starts Postgres on `localhost:5432`. Your data persists in a Docker volume; `docker compose down -v` deletes it.
+
+4. **Set Up Environment Variables**\
    Create a `.env` file in the project root and define:
    ```bash
-   # PostgreSQL connection string used by Prisma
-   DATABASE_URL="postgresql://USER:PASSWORD@HOST:PORT/DATABASE?sslmode=require"
+   # PostgreSQL connection string used by Prisma (this value matches `compose.yaml`)
+   DATABASE_URL="postgresql://postgres:postgres@localhost:5432/reelsearch"
 
    # Secret key used to sign JWTs
    JWT_SECRET="a-long-random-string-here"
@@ -265,9 +272,10 @@ Normalize critic ratings from multiple sources into a single comparable score.
    # Use a regex matching your preview URL pattern, e.g. "https://reelsearch-.*\.vercel\.app"
    VERCEL_PREVIEW_ORIGIN_REGEX="your-regex-here"
    ```
-4. **Running the Development Server**\
+5. **Apply the Database Migrations and Run the Development Server**\
    From the project root run:
    ```bash
+   npx prisma migrate dev
    npm run dev
    ```
    This uses `concurrently` to start both
