@@ -34,12 +34,13 @@ Objectives:
 | F6 | Remove a Title from the watchlist, from the watchlist page or search results ([#42](https://github.com/abj32/reelsearch/issues/42)) | The Title no longer appears in the watchlist |
 | F7 | Sort and filter the watchlist by type, genre, year, runtime and each score | The returned items match every filter and are in the requested order |
 | F8 | Query the watchlist in plain English (watchlist chat) | "show my sci-fi movies after 2015" returns only matching items; a request outside filter and sort returns a clear error |
-| F9 | View a profile with watchlist stats | The profile shows item count, average composite score and counts by type |
+| F9 | View a profile with watchlist stats | The profile shows item count, average composite score and counts by type. For a guest it shows "Guest" in place of an email, and the date their data expires |
 | F10 | Get a guest account on first visit, with no form | A first-time visitor has a session and a watchlist seeded with about 15 sample Titles |
 | F11 | Guest data expires | A guest, their session and watchlist are deleted 7 days after their last activity |
-| F12 | Read the privacy notice | A public page says what the demo stores, that IP addresses are processed for rate limiting and logs, and when guest data is deleted |
+| F12 | Read the privacy notice and the data credits | A public page says what the demo stores, that IP addresses are processed for rate limiting and logs, and when guest data is deleted. The page, or the footer, carries the TMDB attribution that TMDB's terms require and the OMDb credit its CC BY-NC 4.0 licence requires |
+| F13 | Start over as a new guest | After a confirm, "Start over" on the profile deletes the guest and their watchlist and starts a new, seeded guest |
 
-Gaps: F2 needs [#57](https://github.com/abj32/reelsearch/issues/57). F10 needs [#59](https://github.com/abj32/reelsearch/issues/59) and [#71](https://github.com/abj32/reelsearch/issues/71). F11–F12 need [#71](https://github.com/abj32/reelsearch/issues/71).
+Gaps: F2 needs [#57](https://github.com/abj32/reelsearch/issues/57). F9 needs [#59](https://github.com/abj32/reelsearch/issues/59) and [#71](https://github.com/abj32/reelsearch/issues/71). F10 needs [#59](https://github.com/abj32/reelsearch/issues/59) and [#71](https://github.com/abj32/reelsearch/issues/71). F11–F12 need [#71](https://github.com/abj32/reelsearch/issues/71). F13 needs [#59](https://github.com/abj32/reelsearch/issues/59), with seeding from [#71](https://github.com/abj32/reelsearch/issues/71).
 
 ## 4. Nonfunctional requirements
 
@@ -115,13 +116,19 @@ Each row records the choice, the alternatives considered, the reason, and the tr
 - **Catalog service** is the only code that calls TMDB or OMDb. It returns our Title shape and computes critic and composite scores in one place.
 - **Middleware** handles cross-cutting request concerns: session lookup, security headers, rate limits.
 - **Utils** (`server/utils`) are pure functions with no I/O.
+- **Shared** (`shared/`) holds the Zod `TitleSchema`, the one definition of the Title shape. The server's serializer returns the `Title` type that `z.infer` derives from it. The client imports that type with `import type`, so Zod stays out of the client bundle.
 
 Decision: layered routes and services.
 - **Alternatives:** routes calling Prisma directly; a separate controllers layer.
 - **Reason:** keeps HTTP, rules and data access apart, so services are testable without HTTP and logic exists once.
 - **Trade-off:** more files than the app strictly needs at its size.
 
-Gaps: routes call Prisma and parse OMDb data today ([#54](https://github.com/abj32/reelsearch/issues/54)); the watchlist query is copied into two routes ([#54](https://github.com/abj32/reelsearch/issues/54)); the catalog service is still `omdb.service.js` ([#57](https://github.com/abj32/reelsearch/issues/57)).
+Decision: one Zod schema in `shared/` defines the Title shape for server and client.
+- **Alternatives:** the same schema in `server/` with a hand-written Title type in the client; Prisma's generated type as the API shape.
+- **Reason:** one definition that the server returns, the client reads and the OpenAPI spec ([#69](https://github.com/abj32/reelsearch/issues/69)) is generated from, so the shapes can't drift apart.
+- **Trade-off:** a folder outside both packages that the server and client tsconfigs must each include.
+
+Gaps: routes call Prisma and parse OMDb data today ([#54](https://github.com/abj32/reelsearch/issues/54)); the watchlist query is copied into two routes ([#54](https://github.com/abj32/reelsearch/issues/54)); the catalog service is still `omdb.service.js` ([#57](https://github.com/abj32/reelsearch/issues/57)); `shared/` doesn't exist yet ([#57](https://github.com/abj32/reelsearch/issues/57), [#56](https://github.com/abj32/reelsearch/issues/56)).
 
 ## 8. Data model
 
@@ -129,11 +136,15 @@ The schema lives in [`prisma/schema.prisma`](../prisma/schema.prisma). It curren
 
 Rules the schema can't show:
 - **Title is shared and has no owner.** It is a cache of catalog data and critic scores, keyed by TMDB id, with the IMDb id stored for OMDb lookups. Deleting a user leaves Titles in place.
+- **The stored Title is not the API Title.** The serializer maps a Title row to the shared `TitleSchema` shape (see §7), so columns such as `fetchedAt` never reach the client.
 - **A watchlist item is (user, Title, date added).** The user owns it; deleting the user deletes it. One user can save a Title once, which is why (user, Title) is unique.
 - **A watchlist holds at most 1,000 items.** This keeps the watchlist unpaginated.
-- **Titles refresh by age.** Each Title stores `fetchedAt`. The daily cron job refreshes the oldest first, within a share of the daily OMDb budget. Watchlist reads never call a provider.
+- **Titles refresh by age.** Each Title stores `fetchedAt`. The daily cron job refreshes the oldest first, so no Title is older than 30 days in normal running. Watchlist reads never call a provider.
+- **TMDB data is never kept past 6 months.** TMDB's API terms set that limit, and require deleting all TMDB data if API access ends. The 30-day target leaves room for missed cron runs. Source: [TMDB API terms](https://www.themoviedb.org/api-terms-of-use), §1.C–D.
+- **The OMDb budget is 1,000 calls per UTC day.** Search gets 600, the cron job 300, and 100 are held back. The API counts calls in Postgres itself, because OMDb publishes no reset time.
+- **The cron job is safe to run twice.** Vercel may skip a run or deliver it twice, and starts it any time within the scheduled hour.
 - **Scores are computed once.** The catalog service converts each critic score to 0–100 and averages the ones present into the composite score, stored on the Title.
-- **Guests expire.** The daily cron job deletes a guest 7 days after their last activity; their sessions and watchlist go with them. A new guest's watchlist is seeded with about 15 sample Titles.
+- **Guests expire.** The daily cron job deletes a guest 7 days after their last activity; their sessions and watchlist go with them. A guest who chooses Start over is deleted the same way at once. A new guest's watchlist is seeded with about 15 sample Titles.
 - **Sessions belong to Better Auth.** Its tables are generated from its Prisma adapter.
 - **Prisma is the only database access.** No raw SQL.
 
@@ -145,7 +156,7 @@ No machine-readable spec exists yet. Endpoints are listed in the README's "API O
 
 | Convention | Rule |
 |---|---|
-| Response shape | Search and watchlist return the same camelCase Title object, shaped once on the server |
+| Response shape | Search and watchlist return the same camelCase Title object, shaped once on the server and defined by `TitleSchema` in `shared/` |
 | Error shape | `{ code, message }`, plus a `details` array of field problems on validation errors |
 | 400 | Invalid input |
 | 401 / 403 | Not signed in / not allowed |
@@ -166,6 +177,7 @@ Gaps: shapes differ today ([#56](https://github.com/abj32/reelsearch/issues/56))
 2. The guest gets an httpOnly, Secure, SameSite=Lax session cookie.
 3. Each protected request looks up the session in Postgres, so a deleted guest's session fails at once.
 4. The daily cron job deletes guests 7 days after their last activity.
+5. If a guest chooses Start over and confirms, the API deletes the guest, their sessions and watchlist, and starts a new guest. The new guest counts toward the per-IP guest-creation limit.
 
 Phase 2 adds email/password accounts that a guest can convert to, keeping their watchlist ([#72](https://github.com/abj32/reelsearch/issues/72)).
 
@@ -189,7 +201,7 @@ Phase 2 adds email/password accounts that a guest can convert to, keeping their 
 
 Gaps: JWT auth with register and login is still in place ([#59](https://github.com/abj32/reelsearch/issues/59)); auth errors crash their own catch blocks ([#53](https://github.com/abj32/reelsearch/issues/53)); headers, rate limits and Dependabot ([#62](https://github.com/abj32/reelsearch/issues/62)); guest limits and the OpenAI cap ([#71](https://github.com/abj32/reelsearch/issues/71)); failed lookups aren't logged ([#57](https://github.com/abj32/reelsearch/issues/57)).
 
-## 11. Testing and deployment
+## 11. Testing, deployment and operations
 
 ### Test levels
 
@@ -197,9 +209,11 @@ Gaps: JWT auth with register and login is still in place ([#59](https://github.c
 |---|---|---|
 | Unit | Vitest | Services and utils, with providers and OpenAI mocked |
 | Integration | Vitest + Supertest against Docker Postgres | Each route through to the database |
+| Client component | Vitest + Testing Library | Search, watchlist and chat components, with the API service mocked |
 | Accessibility | axe | Each page |
+| End-to-end | Playwright Test | The guest, search, add and remove flow in a real browser |
 
-Gap: no tests exist yet ([#48](https://github.com/abj32/reelsearch/issues/48)).
+Gap: no tests exist yet ([#48](https://github.com/abj32/reelsearch/issues/48), end-to-end [#76](https://github.com/abj32/reelsearch/issues/76)).
 
 ### Environments
 
@@ -212,18 +226,36 @@ Gap: no tests exist yet ([#48](https://github.com/abj32/reelsearch/issues/48)).
 ### Release process
 
 1. Open a PR from a `<type>/<short-desc>` branch.
-2. CI runs lint, type check and tests; branch protection blocks merging until they pass.
+2. CI runs lint, type check and tests, and applies every migration to an empty Postgres. Branch protection blocks merging until all pass.
 3. Review the Vercel preview.
 4. Merge to `main`; Vercel builds, runs `prisma migrate deploy`, and deploys to production.
 
-Gaps: the API still runs on Render ([#61](https://github.com/abj32/reelsearch/issues/61)); no CI or preview branches ([#66](https://github.com/abj32/reelsearch/issues/66)); no Docker Compose ([#65](https://github.com/abj32/reelsearch/issues/65)).
+### Rollback
+
+- **Code:** if a release breaks production, promote the previous deployment in the Vercel dashboard. This needs no new build.
+- **Migrations:** `prisma migrate deploy` only moves forward. A release never removes or renames anything the previous release still reads. It adds the new column first and drops the old one in a later release, so a code rollback never meets a schema it can't use.
+- **Data:** if a mistake destroys data, restore the Neon database to a point before it. The free plan keeps only a short history window, so take a manual snapshot before any migration that deletes data.
+
+### Logging and monitoring
+
+- **Logs:** the API writes pino JSON to standard output. Vercel keeps runtime logs for 1 hour on the Hobby plan, so Sentry is the lasting record of errors.
+- **Request ID:** each request gets an ID that appears in every log line for it and on its Sentry event.
+- **Never logged:** cookies, session ids, watchlist chat text and secrets.
+- **Health check:** `GET /api/health` returns 200 if the database answers and 503 if not. It also reports when the last daily cron job finished, so a job that stopped running is visible.
+- **Uptime monitor:** an external monitor calls the health check and sends an alert when it fails.
+- **Budget warnings:** when the daily OMDb budget runs out or the OpenAI cap is reached, the API logs a warning and sends a Sentry event.
+- **Errors:** unexpected errors, including cron failures, reach Sentry with the request path.
+
+Gaps: the API still runs on Render ([#61](https://github.com/abj32/reelsearch/issues/61)); no CI, migration check or preview branches ([#66](https://github.com/abj32/reelsearch/issues/66)); no Docker Compose ([#65](https://github.com/abj32/reelsearch/issues/65)); logging, request IDs and Sentry ([#67](https://github.com/abj32/reelsearch/issues/67)). The health check and uptime monitor are tracked in [#75](https://github.com/abj32/reelsearch/issues/75).
 
 ## 12. Open questions
 
 | Question | Blocks |
 |---|---|
-| How is the daily OMDb budget split between search and the refresh job? | [#57](https://github.com/abj32/reelsearch/issues/57), [#58](https://github.com/abj32/reelsearch/issues/58) |
 | What are the per-user chat and search limits, the per-IP guest-creation limit, and the global daily OpenAI cap? | [#62](https://github.com/abj32/reelsearch/issues/62), [#71](https://github.com/abj32/reelsearch/issues/71) |
-| Do the TMDB and OMDb terms allow caching Title data, and for how long? | [#58](https://github.com/abj32/reelsearch/issues/58) |
+| May OMDb pass on IMDb, Rotten Tomatoes and Metacritic scores under CC BY-NC 4.0? Its terms don't say where the scores come from. | Nothing in the non-commercial MVP; any commercial use |
 | Which sample Titles seed a new guest's watchlist? | [#71](https://github.com/abj32/reelsearch/issues/71) |
+| Which uptime monitor, where do alerts go (email or chat), and how old can the last cron run be before an alert? | [#67](https://github.com/abj32/reelsearch/issues/67) |
+| What is Neon's free-plan history window now? Sources give 6 hours and 1 day. | The data rollback rule in §11 |
+| Why React Router and Tailwind? The rationale in §6 is unconfirmed. | Nothing yet |
 | Which domain name to buy? | Phase 2 ([#60](https://github.com/abj32/reelsearch/issues/60)) |
