@@ -213,7 +213,7 @@ Gaps: JWT auth with register and login is still in place ([#59](https://github.c
 | Accessibility | axe | Each page |
 | End-to-end | Playwright Test | The guest, search, add and remove flow in a real browser |
 
-Gap: no tests exist yet ([#48](https://github.com/abj32/reelsearch/issues/48), end-to-end [#76](https://github.com/abj32/reelsearch/issues/76)).
+Gap: only the backend unit and integration levels exist ([#48](https://github.com/abj32/reelsearch/issues/48)). Search tests need [#57](https://github.com/abj32/reelsearch/issues/57), end-to-end [#76](https://github.com/abj32/reelsearch/issues/76).
 
 ### Environments
 

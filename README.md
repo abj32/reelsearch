@@ -285,6 +285,8 @@ Normalize critic ratings from multiple sources into a single comparable score.
    - the Express API (`npm run start-server`) on http://localhost:5000
    - the Vite dev server (`npm run start-client`) on http://localhost:5173
 
+6. **Run the Backend Tests**   `npm test` runs everything. Unit tests (`npm run test:unit`) need no database. Integration tests (`npm run test:integration`) need the Docker Postgres from step 3 and use a separate `reelsearch_test` database, created and migrated automatically. No test calls OMDb or OpenAI.
+
 <br>
 
 ## Using the App
