@@ -55,7 +55,7 @@ Gaps: F2 needs [#57](https://github.com/abj32/reelsearch/issues/57). F9 needs [#
 | Accessibility | The client meets WCAG 2.2 AA. |
 | Cost | Hosting, database and error tracking run on free tiers. OpenAI stays under about $5 a month. |
 
-Gaps: security [#62](https://github.com/abj32/reelsearch/issues/62) and [#71](https://github.com/abj32/reelsearch/issues/71), privacy [#71](https://github.com/abj32/reelsearch/issues/71), observability [#67](https://github.com/abj32/reelsearch/issues/67), accessibility [#68](https://github.com/abj32/reelsearch/issues/68). The performance target needs the move off Render ([#61](https://github.com/abj32/reelsearch/issues/61)).
+Gaps: security [#62](https://github.com/abj32/reelsearch/issues/62) and [#71](https://github.com/abj32/reelsearch/issues/71), privacy [#71](https://github.com/abj32/reelsearch/issues/71), observability [#67](https://github.com/abj32/reelsearch/issues/67), accessibility [#68](https://github.com/abj32/reelsearch/issues/68).
 
 ## 5. MVP scope
 
@@ -90,7 +90,7 @@ Each row records the choice, the alternatives considered, the reason, and the tr
 | Critic scores | OMDb, looked up by IMDb id | None found with all three scores | The only free source of IMDb, Rotten Tomatoes and Metacritic scores together | Free cap of 1,000 calls a day, so calls are cached and budgeted |
 | LLM | OpenAI `gpt-5.4-mini` with structured outputs | — | Already works and is cheap | Per-request cost, so chat is rate limited |
 | Email (phase 2) | Resend ([#60](https://github.com/abj32/reelsearch/issues/60)) | — | Free plan of 3,000 emails a month, 100 a day | Needs a verified custom domain |
-| Hosting | One Vercel project for client and API ([#61](https://github.com/abj32/reelsearch/issues/61)) | Render (current), Google Cloud free VM | Express runs as a function with pre-warming, so cold starts are rare and short; one domain removes CORS and the public API origin; built-in firewall | No long-running processes or in-memory state; Hobby plan is non-commercial only |
+| Hosting | One Vercel project for client and API | Render (previous), Google Cloud free VM | Express runs as a function with pre-warming, so cold starts are rare and short; one domain removes CORS and the public API origin; built-in firewall | No long-running processes or in-memory state; Hobby plan is non-commercial only |
 | Edge security | Vercel Firewall | Cloudflare proxy in front | Vercel already provides WAF, DDoS mitigation and bot protection, and advises against a proxy in front because it hides client IPs from them | Hobby allows 3 custom rules, 1 of them a rate limit |
 | Domain (phase 2) | One personal domain, ReelSearch on a `reelsearch.` subdomain | Free platform subdomain | Needed to send email; one domain serves all projects | About $10–15 a year |
 | Testing | Vitest + Supertest ([#48](https://github.com/abj32/reelsearch/issues/48)) | Jest | The standard 2026 setup for ESM Express | — |
@@ -246,7 +246,7 @@ Gap: only the backend unit and integration levels exist ([#48](https://github.co
 - **Budget warnings:** when the daily OMDb budget runs out or the OpenAI cap is reached, the API logs a warning and sends a Sentry event.
 - **Errors:** unexpected errors, including cron failures, reach Sentry with the request path.
 
-Gaps: the API still targets Render, whose service is suspended ([#61](https://github.com/abj32/reelsearch/issues/61)); production deployments stay off until signup/login is gone and the guest demo has its limits and privacy notice ([#59](https://github.com/abj32/reelsearch/issues/59), [#62](https://github.com/abj32/reelsearch/issues/62), [#71](https://github.com/abj32/reelsearch/issues/71)); no CI, migration check or preview branches ([#66](https://github.com/abj32/reelsearch/issues/66)); no Docker Compose ([#65](https://github.com/abj32/reelsearch/issues/65)); logging, request IDs and Sentry ([#67](https://github.com/abj32/reelsearch/issues/67)). The health check and uptime monitor are tracked in [#75](https://github.com/abj32/reelsearch/issues/75).
+Gaps: production deployments stay off until signup/login is gone and the guest demo has its limits and privacy notice ([#59](https://github.com/abj32/reelsearch/issues/59), [#62](https://github.com/abj32/reelsearch/issues/62), [#71](https://github.com/abj32/reelsearch/issues/71)); no CI, migration check or preview branches ([#66](https://github.com/abj32/reelsearch/issues/66)); no Docker Compose ([#65](https://github.com/abj32/reelsearch/issues/65)); logging, request IDs and Sentry ([#67](https://github.com/abj32/reelsearch/issues/67)). The health check and uptime monitor are tracked in [#75](https://github.com/abj32/reelsearch/issues/75).
 
 ## 12. Open questions
 
