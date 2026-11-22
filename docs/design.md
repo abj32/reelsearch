@@ -78,13 +78,13 @@ Each row records the choice, the alternatives considered, the reason, and the tr
 
 | Area | Choice | Alternatives | Reason | Trade-off |
 |---|---|---|---|---|
-| Language | TypeScript (migration under way, [#70](https://github.com/abj32/reelsearch/issues/70)) | JavaScript | Type safety; expected in portfolio code | A build and type-check step |
+| Language | TypeScript | JavaScript | Type safety; expected in portfolio code | A build and type-check step |
 | Frontend | React 19 + Vite | Next.js | Current mainstream; a single-page app with a separate API needs no server rendering | No server rendering for search pages |
 | Routing and styling | React Router, Tailwind CSS v4 | — | Rationale: unconfirmed | — |
 | Backend | Express 5 | Fastify, Hono | The most widely known Node framework, so reviewers read it easily | Fewer built-ins than Fastify (validation, schemas) |
 | Validation | Zod ([#55](https://github.com/abj32/reelsearch/issues/55)) | Hand-written checks | The most common Express pairing in 2026; one schema checks requests, model output and feeds the API spec | One more dependency |
 | Database | PostgreSQL on Neon | SQLite, other hosted Postgres | Free tier, Vercel integration, branch per preview; the schema needs Postgres list columns | The free database sleeps after about 5 minutes idle, adding a short wake-up delay |
-| ORM | Prisma, upgrading 6 → 7 ([#70](https://github.com/abj32/reelsearch/issues/70)) | Drizzle | Already in use; 7 is current | Heavier client than Drizzle |
+| ORM | Prisma 7 | Drizzle | Already in use; 7 is current | Heavier client than Drizzle |
 | Auth and sessions | Better Auth with database sessions; its anonymous plugin creates guests ([#59](https://github.com/abj32/reelsearch/issues/59)) | Hand-written JWT cookie (current), hand-written sessions, one shared demo account | Maintained library with revocable sessions, rate limiting and CSRF checks. Per-visitor guests keep watchlists private, unlike a shared account. The plugin can later turn a guest into a real account. | A dependency that controls auth tables and routes; guest creation must be rate limited |
 | Catalog | TMDB for search and metadata ([#57](https://github.com/abj32/reelsearch/issues/57)) | OMDb alone (current) | Richer data, hosted images, higher limits; one call per search page | TMDB has no critic scores; non-commercial use only, with attribution |
 | Critic scores | OMDb, looked up by IMDb id | None found with all three scores | The only free source of IMDb, Rotten Tomatoes and Metacritic scores together | Free cap of 1,000 calls a day, so calls are cached and budgeted |
@@ -167,7 +167,7 @@ No machine-readable spec exists yet. Endpoints are listed in the README's "API O
 | Versioning | Not applicable: the only client deploys with the API from the same repo |
 | Pagination | Search takes `page`, passed through to TMDB. The watchlist is unpaginated because of its 1,000-item cap. |
 
-Gaps: shapes differ today ([#56](https://github.com/abj32/reelsearch/issues/56)); validation details and correct 400s ([#55](https://github.com/abj32/reelsearch/issues/55), [#46](https://github.com/abj32/reelsearch/issues/46)); provider failures return 500, not 502/503 ([#57](https://github.com/abj32/reelsearch/issues/57)).
+Gaps: shapes differ today ([#56](https://github.com/abj32/reelsearch/issues/56)); validation details and correct 400s ([#55](https://github.com/abj32/reelsearch/issues/55)); provider failures return 500, not 502/503 ([#57](https://github.com/abj32/reelsearch/issues/57)).
 
 ## 10. Security and error handling
 
@@ -199,7 +199,7 @@ Phase 2 adds email/password accounts that a guest can convert to, keeping their 
 - If TMDB or OpenAI fails, the API returns 502 or 503 with a clear message; the client shows it.
 - Unexpected errors return 500 with a generic message, are logged as JSON, and go to Sentry.
 
-Gaps: JWT auth with register and login is still in place ([#59](https://github.com/abj32/reelsearch/issues/59)); auth errors crash their own catch blocks ([#53](https://github.com/abj32/reelsearch/issues/53)); headers, rate limits and Dependabot ([#62](https://github.com/abj32/reelsearch/issues/62)); guest limits and the OpenAI cap ([#71](https://github.com/abj32/reelsearch/issues/71)); failed lookups aren't logged ([#57](https://github.com/abj32/reelsearch/issues/57)).
+Gaps: JWT auth with register and login is still in place ([#59](https://github.com/abj32/reelsearch/issues/59)); headers, rate limits and Dependabot ([#62](https://github.com/abj32/reelsearch/issues/62)); guest limits and the OpenAI cap ([#71](https://github.com/abj32/reelsearch/issues/71)); failed lookups aren't logged ([#57](https://github.com/abj32/reelsearch/issues/57)).
 
 ## 11. Testing, deployment and operations
 
@@ -213,7 +213,7 @@ Gaps: JWT auth with register and login is still in place ([#59](https://github.c
 | Accessibility | axe | Each page |
 | End-to-end | Playwright Test | The guest, search, add and remove flow in a real browser |
 
-Gap: only the backend unit and integration levels exist ([#48](https://github.com/abj32/reelsearch/issues/48)). Search tests need [#57](https://github.com/abj32/reelsearch/issues/57), end-to-end [#76](https://github.com/abj32/reelsearch/issues/76).
+Gap: only the backend unit and integration levels exist. Search tests need [#57](https://github.com/abj32/reelsearch/issues/57), end-to-end [#76](https://github.com/abj32/reelsearch/issues/76).
 
 ### Environments
 
@@ -246,7 +246,7 @@ Gap: only the backend unit and integration levels exist ([#48](https://github.co
 - **Budget warnings:** when the daily OMDb budget runs out or the OpenAI cap is reached, the API logs a warning and sends a Sentry event.
 - **Errors:** unexpected errors, including cron failures, reach Sentry with the request path.
 
-Gaps: production deployments stay off until signup/login is gone and the guest demo has its limits and privacy notice ([#59](https://github.com/abj32/reelsearch/issues/59), [#62](https://github.com/abj32/reelsearch/issues/62), [#71](https://github.com/abj32/reelsearch/issues/71)); no CI, migration check or preview branches ([#66](https://github.com/abj32/reelsearch/issues/66)); no Docker Compose ([#65](https://github.com/abj32/reelsearch/issues/65)); logging, request IDs and Sentry ([#67](https://github.com/abj32/reelsearch/issues/67)). The health check and uptime monitor are tracked in [#75](https://github.com/abj32/reelsearch/issues/75).
+Gaps: production deployments stay off until signup/login is gone and the guest demo has its limits and privacy notice ([#59](https://github.com/abj32/reelsearch/issues/59), [#62](https://github.com/abj32/reelsearch/issues/62), [#71](https://github.com/abj32/reelsearch/issues/71)); logging, request IDs and Sentry ([#67](https://github.com/abj32/reelsearch/issues/67)). The health check and uptime monitor are tracked in [#75](https://github.com/abj32/reelsearch/issues/75).
 
 ## 12. Open questions
 
