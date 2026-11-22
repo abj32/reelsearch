@@ -13,13 +13,9 @@ ReelSearch is a full-stack web application for discovering movies, TV series, an
 
 ## Live Demo
 
-Frontend:  
 [reelsearch-ten.vercel.app](https://reelsearch-ten.vercel.app)
 
-Backend health check:  
-[https://reelsearch-api-f3qb.onrender.com/health](https://reelsearch-api-f3qb.onrender.com/health)
-
-⚠️ Note: The app may take ~20–30 seconds to respond on the first request after inactivity because the server runs on Render's free tier.
+The client and the API are served from the same Vercel project and domain.
 
 <br>
 
@@ -94,8 +90,7 @@ The profile page displays account info alongside watchlist stats computed from s
    - [OMDb API](https://www.omdbapi.com/) (movie data)
    - OpenAI API (natural language watchlist queries)
 - **Deployment**
-   - Vercel (frontend)
-   - Render (backend)
+   - Vercel (client and API, the API runs as a Vercel Function)
 
 <br>
 
@@ -137,11 +132,14 @@ reelsearch/
 │  │  │  ├─ mediaHelpers.ts  # Sort/filter logic and rating derivation
 │  │  │  └─ normalizeMovie.js # Shapes watchlist API responses for the UI
 │  │  └─ services/           # Frontend API wrappers (auth, search, watchlist)
-│  ├─ vercel.json           # Rewrites /api/* to the Render backend in production
 │  └─ vite.config.js
 │
+├─ vercel.json              # Build command, output directory and /api rewrite
+├─ api/                     # Vercel Function entry that re-exports the Express app
+│
 ├─ server/                  # Express backend (API, auth, watchlist features)
-│  ├─ index.ts              # Express entry point
+│  ├─ app.ts                # Express app (exported, no listen)
+│  ├─ index.ts              # Local dev entry: starts the app listening
 │  ├─ db.ts                 # Prisma client initialization
 │  ├─ lib/
 │  │  └─ openai.ts          # OpenAI client setup
@@ -267,13 +265,6 @@ Normalize critic ratings from multiple sources into a single comparable score.
 
    # Optional: port for the Express API (default is 5000)
    PORT=5000
-
-   # Optional: set on your Render backend to allow requests from your production frontend
-   CLIENT_URL="https://your-frontend.vercel.app"
-
-   # Optional: set on your Render backend to allow Vercel preview deployment URLs
-   # Use a regex matching your preview URL pattern, e.g. "https://reelsearch-.*\.vercel\.app"
-   VERCEL_PREVIEW_ORIGIN_REGEX="your-regex-here"
    ```
 5. **Apply the Database Migrations and Run the Development Server**\
    From the project root run:

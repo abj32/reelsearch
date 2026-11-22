@@ -8,6 +8,6 @@ export default defineConfig({
   },
   datasource: {
     // Not env(): it throws when unset, which breaks `prisma generate` in postinstall before .env exists.
-    url: process.env.DATABASE_URL ?? "",
+    url: process.env.DATABASE_URL_UNPOOLED ?? process.env.DATABASE_URL ?? "", // unpooled: migrations need a direct connection
   },
 });
