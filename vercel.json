@@ -1,0 +1,6 @@
+{
+  "installCommand": "npm ci && npm --prefix client ci",
+  "buildCommand": "npx prisma migrate deploy && npm --prefix client run build",
+  "outputDirectory": "client/dist",
+  "rewrites": [{ "source": "/api/:path*", "destination": "/api" }]
+}
