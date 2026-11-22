@@ -68,3 +68,24 @@ jobs:
       - run: npm ci
       # The integration globalSetup runs `prisma migrate deploy`, so this also proves every migration applies to an empty database.
       - run: npm test
+
+  design-gaps:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: read
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - uses: actions/checkout@v4
+      # docs/design.md lists open work on its "Gap:" and "Gaps:" lines; an issue that has closed no longer belongs there.
+      - run: |
+          status=0
+          for n in $(grep -E '^Gaps?:' docs/design.md | grep -oE 'issues/[0-9]+' | cut -d/ -f2 | sort -un); do
+            if [ "$(gh issue view "$n" --json state -q .state)" = CLOSED ]; then
+              echo "::error file=docs/design.md::A Gap line still links closed issue #$n; update the line."
+              status=1
+            fi
+          done
+          exit $status
